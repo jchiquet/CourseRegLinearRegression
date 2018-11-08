@@ -220,9 +220,9 @@ print(res)
 <!-- - Pour les paramètres suivants, étudiez l'évolution de l'accuracy en terme de support en fonction de la taille d'échantillon normalisée, pour le lasso avec la valeur théorique de $\lambda$ proposée ci-dessus. $p \in \{128,256,512\}$, $n \in \{100,\hdots,1000\}$, $p_0=\lceil 0.4 \times p \rceil$, $\beta_0^*=0.5$, $\sigma=0.5$. -->
 <!-- - Comparer ces performances avec celles du lasso utilisant un $\lambda$ calibré par validation croisée, et celles du lasso adaptatif (également avec $\lambda$ calibré par validation croisée). Discutez les différences de comportement de l'accuracy. -->
 
-# Analyse de jeux de données omiques
+# Analyse de jeux de données en science du vivant
 
-Cette partie des tutoriaux est à réaliser vous même, sur la base des méthodes que vous aurez utilisées au cours des travaux dirigés encadrées. Il s'agit d'étudier un jeu de données en génomique selon une variante des modèles précédemment utilisés. Les étudiants sont libre d'e proposer d'autre'analyser d'autre jeux de données dans un cadre de régression (linéaire, logistique, Poisson, etc), tant que la sélection de variable est en jeu.
+Cette partie des tutoriaux est à réaliser vous même, sur la base des méthodes que vous aurez utilisées au cours des travaux dirigés encadrées. Il s'agit d'étudier un jeu de données en science du vivant selon une variante des modèles précédemment utilisés. Les étudiants sont libre d'analyser d'autres jeux de données dans un cadre de régression (linéaire, logistique, Poisson, etc), tant que la sélection de variable est en jeu.
 
 ## Jeu de données "HIV"
 
@@ -319,3 +319,146 @@ str(bardet)
 ### référence
 
 T. Scheetz, K. Kim, R. Swiderski, A. Philp, T. Braun, K. Knudtson, A. Dorrance, G. DiBona, J. Huang, T. Casavant, V. Sheffield, E. Stone .Regulation of gene expression in the mammalian eye and its relevance to eye disease. *Proceedings of the National Academy of Sciences of the United States of America*, 2006.
+
+## Cookie dough data set
+
+### Description
+
+This data set contains measurements from quantitative NIR spectroscopy. The example studied arises from an experiment done to test the feasibility of NIR spectroscopy to measure the composition of biscuit dough pieces (formed but unbaked biscuits). Two similar sample sets were made up, with the standard recipe varied to provide a large range for each of the four constituents under investigation: fat, sucrose, dry flour, and water. The calculated percentages of these four ingredients represent the 4 responses. There are 40 samples in the calibration or training set (with sample 23 being an outlier) and a further 32 samples in the separate prediction or validation set (with example 21 considered as an outlier).
+
+An NIR reflectance spectrum is available for each dough piece. The spectral data consist of 700 points measured from 1100 to 2498 nanometers (nm) in steps of 2 nm.
+
+### Format
+
+A data frame of dimension 72 x 704. The first 700 columns correspond to the NIR reflectance spectrum, the last four columns correspond to the four constituents fat, sucrose, dry flour, and water. The first 40 rows correspond to the calibration data, the last 32 rows correspond to the prediction data.
+
+```{r cookies}
+load("../data/cookiesDough.RData")
+head(cookie[, 1:5])
+```
+
+### References
+
+B.G. Osborne, T. Fearn, A.R. Miller, and S. Douglas (1984): Application of Near-Infrared Reflectance Spectroscopy to Compositional Analysis of Biscuits and Biscuit Dough. Journal of the Science of Food and Agriculture, 35, pp. 99 - 105.
+
+## Nutrimouse
+
+### description
+
+The nutrimouse dataset contains the expression measure of 120 genes potentially involved in nutritional problems and the concentrations of one hepatic fatty acids for forty mice.
+
+### format
+
+A data frame with 121 columns and 40 rows. The first 120 numerical variables are gene expression. The last columns contains the contentration (in proportion) of fat lipid.
+
+```{r nutrimouse}
+load("../data/mice.rda")
+ls()
+```
+
+### réference
+
+Martin, P. G. P., Guillou, H., Lasserre, F., Dejean, S., Lan, A., Pascussi, J.-M., San Cristobal, M., Legrand, P., Besse, P. and Pineau, T. (2007). Novel aspects of PPAR-mediated regulation of lipid and xenobiotic metabolism revealed through a multrigenomic study. Hepatology 54, 767-777.
+
+## Ferretin data set
+
+### description
+
+This data set has been collected at the Australian National Sport Institue, representing the concentration in Ferretin and various covariate for 102 men et 100 women.
+
+### format
+
+A data frame with 13 columns and 202 rows.
+
+- Sport Sport 
+- Sex male or female 
+- Ht Height in cm 
+- Wt Weight in kg 
+- LBM Lean body mass 
+- RCC Red cell count 
+- WCC White cell count
+- Hc Hematocrit 
+- Hg Hemoglobin 
+- Ferr Plasma ferritin concentration 
+- BMI Body mass index = weight/height^2 
+- SSF Sum of skin folds 
+- XBfat % body fat
+
+```{r ferretine}
+load("../data/ferritin.RData")
+head(ferritin)
+```
+## University Rank
+
+### description
+
+Global score for 200 Universities as a function of various predictors. A data frame with the following columns
+
+- World_Rank : Rang de l'université
+- University_Name: Nom de l'université
+- Country: Localisation de l'université
+- Teaching_Rating: Taux de la qualité d'enseignement de l'université, entre 0-100 .
+- Inter_Outlook_Rating: Taux de la composition internationale de l'université, entre 0-100.
+- Research_Rating: Taux de la qualité de recherche de l'université, entre 0-100.
+- Citations_Rating: Taux de citations des papiers par d'autres universités, entre 0-100.
+- Industry_Income_Rating: Taux de l'investissement des entreprises dans la recherche de l'université, entre 0-100.
+- Total_Score: Score Final (Variable à expliquer).
+- Num_Students: Nombre total des étudiants.
+- Student.Staff_Ratio: Ratio entre le nombre des étudiants et le nombre des membres académiques.
+- X._Inter_Students: Pourcetage des étudiants étrangés.
+- X._Female_Students: Pourcentage des étudiantes.
+- Year: Année académique.
+
+```{r university}
+load("../data/univ.RData")
+head(univ[, 1:3])
+```
+
+## Parkinson dataset
+
+### Description
+
+This dataset is composed of a range of biomedical voice measurements from people with early-stage Parkinson's disease recruited to a six-month trial of a telemonitoring device for remote symptom progression monitoring. Columns in the table contain 16 biomedical voice measures. Each row corresponds to one of 5,875 voice recording from these individuals. The main aim of the data is to predict the total UPDRS scores from the 16 voice measures, a Clinical score for the disease.
+
+### Format
+
+A vector y with the Clinician's total UPDRS score and a matrix x with the following columns
+
+- 1-5 Jitterxx - Several measures of variation in fundamental frequency
+- 6-11 Shimmerxx - Several measures of variation in amplitude
+- 12 NHR - a measures of ratio of noise to tonal components in the voice
+- 13 HNR - a measures of ratio of noise to tonal components in the voice
+- 14 RPDE - A nonlinear dynamical complexity measure
+- 15 DFA - Signal fractal scaling exponent
+- 16 PPE - A nonlinear measure of fundamental frequency variation
+
+```{r parkinson}
+load("../data/parkinson.Rdata")
+head(x)[, 1:3]
+head(y)
+```
+## Breast cancer data
+
+### description
+
+The goal is to predict whether epithelial cells are benign or malignant, based on 9 cytological features assessed on a scale of 1 to 10.
+
+### format
+
+A vector y for the status of the cell (benign, malignant) and a matrix bc.raw with the following columns
+
+- Clump Thickness
+- Uniformity of Cell Size
+- Uniformity of Cell Shape
+- Marginal Adhesion
+- Single Epithelial Cell Size
+- Bare Nuclei
+- Bland Chromatin
+- Normal Nucleoli
+- Mitoses
+
+```{r breast}
+load("../data/breast.RData")
+head(bc.raw)[, 1:3]
+```
+
