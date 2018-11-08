@@ -1,4 +1,5 @@
-Introduction à la régression linéaire régularisées
+Introduction aux méthodes régularisées et parcimonieuses pour la
+régression linéaire
 ================
 
 L’objet de ce module est de présenter une introduction aux méthodes
@@ -26,8 +27,10 @@ machines et d’un projet d’analyse, à rendre avant
 
 ## Documents
 
-  - [Les slides du cours]()
-  - [l’énoncé des travaux dirigés]()
+  - [Les slides du
+    cours](https://github.com/jchiquet/CourseRegLinearRegression/raw/master/slides/main.pdf)
+  - [l’énoncé des travaux
+    dirigés](https://github.com/jchiquet/CourseRegLinearRegression/raw/master/td/td_ensai.pdf)
 
 ## Logiciel
 

@@ -1,5 +1,5 @@
 ---
-title: "Introduction à la régression linéaire régularisées"
+title: "Introduction aux méthodes régularisées et parcimonieuses pour la régression linéaire"
 output: github_document
 ---
 
