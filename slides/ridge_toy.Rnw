@@ -1,0 +1,28 @@
+
+<<include=FALSE>>=
+library(knitr)
+opts_chunk$set(
+dev='pdf',fig.path='figures/toy_ridge'
+)
+@
+
+
+
+\begin{frame}[containsverbatim,allowframebreaks]
+  \frametitle{Un exemple en deux dimensions (en \texttt{R})}
+
+On génère deux prédicteurs corrélés
+<<echo=TRUE>>=
+suppressMessages(library(quadrupen))
+x1 <- rnorm(5)
+x2 <- x1 + rnorm(5,0, 0.5)
+cor(x1,x2)
+@
+
+On génère $Y$ et on trace le \alert{\bf chemin de régularisation}
+<<echo=TRUE,fig.width=8>>=
+y <- x1 + x2 +rnorm(5)
+plot(ridge(cbind(x1,x2),y))
+@
+
+\end{frame}

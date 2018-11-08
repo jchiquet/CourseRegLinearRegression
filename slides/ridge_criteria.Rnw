@@ -1,0 +1,64 @@
+\begin{frame}[containsverbatim]
+  \frametitle{Cancer de la prostate}
+  \framesubtitle{Calcul de l' AIC/BIC en estimant $\sigma$}
+
+<<>>=
+crit <- criteria(ridge.path, plot=FALSE)
+print(head(crit$criterion), digits=3)
+print(head(crit$beta.min))
+@
+\end{frame}
+
+
+\begin{frame}[containsverbatim]
+  \frametitle{Cancer de la prostate}
+  \framesubtitle{Calcul de l' AIC/BIC en estimant $\sigma$ (plot)}
+
+<<echo=FALSE>>=
+criteria(ridge.path)
+@ 
+\end{frame}
+
+\begin{frame}[containsverbatim]
+  \frametitle{Cancer de la prostate}
+  \framesubtitle{Calcul de l' AIC/BIC en estimant $\sigma$ (plot 2)}
+
+<<echo=FALSE>>=
+criteria(ridge.path, xvar="df")
+@ 
+\end{frame}
+
+\begin{frame}[containsverbatim]
+  \frametitle{Validation croisée}
+
+  La validation croisée se parallèlise facilement et ne prend que peu de temps sur un petit jeu de données
+
+<<>>=
+system.time(loo <- quadrupen::crossval(x.train,y.train,"ridge",K=n,normalize=FALSE))
+@
+
+<<>>=
+system.time(CV10 <- quadrupen::crossval(x.train,y.train,"ridge",K=10,normalize=FALSE))
+@
+
+\end{frame}
+
+\begin{frame}[containsverbatim]
+  \frametitle{Validation croisée ("leave one out")}
+<<echo=FALSE, fig.width=8>>=
+plot(loo, main="LOO CV error")
+@
+\end{frame}
+
+
+
+\begin{frame}[containsverbatim]
+  \frametitle{Validation croisée ("ten fold")}
+<<echo=FALSE, fig.width=8>>=
+plot(CV10, main="10-fold CV error")
+@
+\end{frame}
+
+
+
+

@@ -1,0 +1,193 @@
+\subsection{Régression linéaire et OLS}
+
+\begin{frame}{Régression linéaire multiple}
+  \framesubtitle{Le modèle}
+  
+  On suppose que la vraie relation entre $Y$ et $x$ est linéaire:  
+  \[Y = \beta_0 + \sum_{j=1}^p\beta_j X_j + \varepsilon,\]
+
+  \begin{itemize}
+  \item $Y$ la variable aléatoire de réponse,
+  \item $X = (X_1, \dots, X_p)$ un vecteur tel que $X_j$ peut être
+      \begin{itemize}
+      \item une covariable quantitative ou une transformation d'une covariable
+      \item une expansion de bases (polynomiale, haart, etc.),
+      \item une interaction entre covariables,
+      \item un design/codage associé à une variable qualitative.
+      \end{itemize}
+  \item $\beta_0$ est la \alert{\bf constante} (\alert{\bf intercept})
+  \item $\beta_j$ sont les \alert{\bf coefficients de régression}
+  \item $\varepsilon$ est le \alert{\bf résidu} (variable aléatoire)\\
+    \begin{itemize}
+    \item[$\rightsquigarrow$] erreur de mesure, variabilité individuelle, facteur(s) non expliqué(s)
+    \end{itemize}
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Régression linéaire multiple}
+  \framesubtitle{Échantillonnage et écriture matricielle}
+
+  \begin{block}{Collecte de données / échantillonnage aléatoire}
+    Soit $\{(Y_i,x_i)\}_{i=1}^n$  un $n$-échantillon  avec $Y_i\in\Rset$
+    et $x_i\in\Rset^p$. On a    
+    $$Y_i = \beta_0 + \sum_{j=1}^p\beta_j x_{ij} + \varepsilon_i,$$
+    avec $\{\varepsilon_i\}_{i=1}^n$ indépendants, identiquement distribués.
+  \end{block}
+    \vspace{-.25cm}
+    
+  \begin{block}{Les données}
+    \vspace{-.25cm}
+    \begin{itemize}
+    \item $\mathcal{D} = \{i:(y_i, x_i) \in \text{ l'ensemble d'entraînement}\}$,
+    \item $\mathcal{T} = \{i:(y_i, x_i) \in \text{ l'ensemble de test}\}$,
+    \item  $\mathbf{y}  =   (y_i)_{i\in\mathcal{D}}$,  le  vecteur  de
+      réponse  dans $\mathbb{R}^{|\mathcal{D}|}$,
+    \item  $\mathbf{x}_j  = (x_{ij})_{i\in\mathcal{D}}$  le
+      vecteur de données pour le $j\ieme$ prédicteur dans $\mathbb{R}^{|\mathcal{D}|}$,
+    \item $\mathbf{X}$ la matrice $n\times p$ dont la $j\ieme$ ligne est $\mathbf{x}_j$,
+    \item $(\by_\mathcal{T},\bX_\mathcal{T})$ les données de test.
+    \end{itemize}
+  \end{block}
+
+\end{frame}
+
+\begin{frame}{Régression linéaire multiple}
+  \framesubtitle{Écriture matricielle}
+
+  \begin{align*}
+    \onslide<1->{Y_i & = \beta_0 + \sum_{j=1}^p\beta_j x_{ij} + \varepsilon_i \quad i=1,\dots,n\\}
+    \onslide<2->{Y & = \1_n \beta_0 + \sum_{j=1}^p\beta_j \bx_j + \bvarepsilon\\}
+    \onslide<3->{Y & = (\1_n, \bx_1, \dots, \bx_p) 
+      \begin{pmatrix}
+        \beta_0 \\
+        \beta_1 \\
+        \dots \\
+        \beta_p \\
+      \end{pmatrix} + \bvarepsilon = 
+\underbrace{\begin{pmatrix}
+        1 & x_{11} & \dots & x_{1p} \\
+        1 & x_{21} & \dots & x_{2p}\\
+    \vdots & \vdots & \vdots & \vdots\\
+        1 & x_{n1} & \dots & x_{np}\\
+      \end{pmatrix}}_{\text{$\bX$, une matrice $n\times (p+1)$}} \begin{pmatrix}
+        \beta_0 \\
+        \beta_1 \\
+        \vdots \\
+        \beta_p \\
+      \end{pmatrix} + 
+    \begin{pmatrix}
+        \varepsilon_1 \\
+        \vdots \\
+        \varepsilon_n \\
+      \end{pmatrix}\\}
+  \end{align*}
+  \vspace{-.75cm}
+  \begin{block}{En résumé,}<4>
+    \vspace{-.5cm}
+    \[Y = \bX \bbeta + \bvarepsilon.\]
+  \end{block}
+  
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Estimateur des moindres carrés ordinaires}
+
+  \begin{columns}[c]
+    \begin{column}{.5\textwidth}
+      \begin{block}{Géometrie}
+        \begin{figure}[htbp!]
+          \centering
+          \includegraphics[width=.7\textwidth]{figures/geo_variables}
+          \caption{Dans l'espace des variables $\R^{p+1}$}
+        \end{figure}
+      \end{block}
+    \end{column}
+    \begin{column}{.5\textwidth}
+      \begin{block}{Critère}
+        L'estimateur des moindres carrés  ordinaires minimise la somme
+        des carrés des résidus (ou l'\alert{erreur d'apprentissage $\err_{\mathcal{D}}(\bbeta)$.})
+        \begin{align*}
+          \hatbbetaols   & =    \argmin_{\bbeta\in\mathbb{R}^{p+1}}    \|
+          \mathbf{y} - \mathbf{X}\bbeta\|_2^2 \\
+          & = (\mathbf{X}^\intercal\mathbf{X})^{-1}\mathbf{X}^\intercal\mathbf{y},
+        \end{align*}
+        Si $\bX$ est de rang plein.
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}
+  \frametitle{MCO: géométrie dans l'espace des observations}
+
+  \begin{block}{Valeurs ajustées}
+    \begin{equation*}
+    \hat{\by} = \mathbf{X}(\mathbf{X}^\intercal\mathbf{X})^{- 1}\mathbf{X}^\intercal \by = \mathbf{H}\by,
+  \end{equation*}
+  où $\mathbf{H}$ est la matrice de projection ou ``matrice chapeau''.
+\end{block}
+  \begin{columns}[c]
+    \begin{column}{.5\textwidth}
+      \begin{center}
+        \includegraphics{figures/geo_sample}
+      \end{center}
+    \end{column}
+    \begin{column}{.5\textwidth}
+      \begin{block}{Dans l'espace des colonnes de $\bX$,}
+        \begin{itemize}
+        \item les $\bx_j$ engendrent un espace $n$--dimensionnel,
+        \item $\hat{\by}$ est une combinaison linéaire des colonnes de
+          $\bx_j$,
+        \item   $\hat{\boldsymbol\varepsilon}  =   \by-\hat{\by}$  est
+          orthogonal à ce sous-espace.
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Estimation des paramètres}
+   \framesubtitle{Propriétés des estimateurs}
+  
+   \begin{block}{Cas général}
+     $\hatbbeta$ sont des estimateurs sans biais de $\beta$ de variance
+     \begin{equation*}
+       \var(\hatbbeta) = \sigma^2 (\bX^\intercal\bX)^{-1}.
+     \end{equation*}
+   \end{block}
+  
+   \begin{block}{Cas gaussien}
+     Si les résidus sont gaussien, i.e. $\varepsilon\sim\mathcal{N}(0,\sigma^2)$, alors 
+     \begin{equation*}
+       \hatbbeta \sim\mathcal{N}\left(\bbeta,\sigma^2 (\bX^\intercal\bX)^{-1}\right)
+     \end{equation*}
+     \begin{equation*}
+(\hatbbeta-\bbeta)^\intercal\frac{\bX^\intercal \bX}{\sigma^2} (\hatbbeta-\bbeta)
+\sim\chi^2_{p+1}
+     \end{equation*}
+     \begin{equation*}
+       (n-p-1) \hat\sigma^2 \sim \sigma^2\chi^2_{n-p-1}
+\end{equation*}
+\end{block}
+ 
+ \end{frame}
+
+\begin{frame}{Estimation des paramètres}
+   \framesubtitle{Propriétés des estimateurs (II)}
+
+   \begin{block}{Théorème de Gauss-Markov}
+     \begin{itemize}
+     \item \alert{Cas gaussien}: $\hatbbetaols$ est le
+       meilleur estimateur sans biais (i.e. de variance minimale).
+      
+     \item \alert{Cas non gaussien}: $\hatbbetaols$ est le 
+       meilleur estimateur  \alert{\bf linéaires} sans biais  (i.e. de
+       variance minimale).
+     \end{itemize}    
+   \end{block}
+
+   $\rightsquigarrow$ On dit que $\hatbbetaols$ est le \alert{\bf BLUE} (best linear
+   unbiased estimator)
+\end{frame}

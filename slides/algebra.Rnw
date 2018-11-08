@@ -1,0 +1,290 @@
+\subsection{Dérivée par rapport à un vecteur}
+
+\begin{frame}
+  \frametitle{Gradient}
+
+  \begin{definitionf}[gradient]
+    Soit $f$  une application  de $\Rset^p$  dans $\Rset$.  On appelle
+    gradient de $f$ le vecteur des dérivées partielles
+    \begin{equation*}
+      \nabla f(\bx) = \frac{\partial }{\partial \bx} f(\bx) = \left(\frac{\partial f}{\partial x_1}, \dots, \frac{\partial f}{\partial x_p}\right)^\intercal.
+    \end{equation*}
+  \end{definitionf}
+  
+  De cette définition, on déduit  en particulier la dérivée par rapport
+  à un  vecteur d'une  forme linéaire,  d'une application  linéaire et
+  d'une forme quadratique.
+  
+\end{frame}
+
+\begin{frame}
+  \frametitle{Dérivée par rapport à un vecteur}
+
+  \begin{proposition}[dérivée par rapport à un vecteur]
+    Soit    $\bu,\bx\in\Rset^p$    et   $\bA\in\mathcal{M}_{mp}$    et
+    $\bS\in\mathcal{M}_{pp}$.
+    \begin{align*}
+      \frac{\partial}{\partial \bx} \bu^\intercal\bx & = \bu\\
+      \frac{\partial}{\partial \bx} \bA\bx & = \bA\\
+      \frac{\partial}{\partial \bx} \bx^\intercal\bS\bx & = \bS\bx + \bS^\intercal \bx\\      
+    \end{align*}
+    Si de plus $\bS$ est symétrique, alors
+    \begin{equation*}
+      \frac{\partial}{\partial \bx} \bx^\intercal\bS\bx = 2 \bS\bx 
+    \end{equation*}
+  
+\end{proposition}
+  
+\end{frame}
+
+\subsection{Vecteur aléatoire Gaussien}
+
+\begin{frame}
+  \frametitle{Vecteur aléatoire, espérance et  variance-covariance}
+
+  Soit $X = (X_1,\dots,X_p)^\intercal$ un vecteur de variables aléatoires dont la distribution est définie par la densité jointe $f(\bx) = f(x_1,\dots,x_p)$.
+  
+\begin{definitionf}[Espérance]
+L'espérance de $X$ est le vecteur d'espérance de chaque composant:
+\begin{equation*}
+\E X  = \left(\E(X_1), \dots, \E(X_p) \right)^\intercal.
+\end{equation*}
+\end{definitionf}
+
+\vspace{-.35cm} 
+
+\begin{definitionf}[Variance]
+  La variance de $X$ est la matrice (de variance-covariance) définie par
+  \begin{equation*}
+\var(X) = \only<1,3->{\E\left[(X - \E X) (X - \E X)^\intercal \right]}  
+\only<2>{\begin{pmatrix}
+\var (X_1) & \dots & \cov(X_1,X_j ) & \dots & \cov(X_1,X_p) \\
+ \vdots &  & \vdots & & \vdots \\
+\cov(X_1,X_j) & \dots & \var(X_j ) & \dots & \cov(X_j,X_p) \\
+ \vdots &  & \vdots & & \vdots \\
+\cov (X_1,X_p) & \dots & \cov(X_j,X_p ) & \dots & \var(X_p) \\
+\end{pmatrix}}
+\end{equation*}
+\end{definitionf}
+
+\vspace{-.35cm}
+
+\begin{block}{Propriétés}<3>
+Soit $\bA$ une matrice $m \times p$ de constantes, alors
+\begin{equation*}
+\E (\bA X) = \bA \E(X), \quad \var(\bA X) = \bA \var(X) \bA^\intercal
+\end{equation*}
+\end{block}
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Vecteur gaussien}
+
+  \begin{block}{Définition}
+    Le vecteur $X\in\Rset^p$ suit une distribution normale multivariée
+    de moyenne $\bmu$ et de  variance $\bSigma$ si la fonction densité
+    d'une réalisation de $\bx$ est données par
+\begin{equation*}    
+f(\bx) = (2\pi)^{-p/2} | \bSigma|^{-1/2} \exp\left\{-\frac{1}{2}(\bx-\bmu)^\intercal \bSigma^{-1}(\bx-\bmu)\right\}.
+\end{equation*}
+On note $X\sim\mathcal{N}(\bmu,\bSigma)$ un vecteur gaussien de $\Rset^p$.
+   \end{block} 
+  
+  \vfill
+  
+  \begin{block}{Log-vraisemblance} Soit $\bX$ la matrice $n\times p$ dont les lignes, notées $\bx_i$, sont des
+    réalisation indépendantes de $X$.
+    \vspace{-.5cm}
+    \begin{equation*}
+      \log L(\bmu,\bSigma;  \bX) = -\frac{n p}{2}\log(2\pi)
+      - \frac{n}{2} \log |\bSigma| -
+      \frac{1}{2}  \sum_{i=1}^n  \left( \bx_i  -  \bmu\right)^\intercal
+      \bSigma^{-1} \left( \bx_i - \bmu \right)    \end{equation*}
+  \end{block}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Vecteur gaussien}
+  \framesubtitle{Exemples bivariés}
+
+<<>>=
+library(mvtnorm)
+mu <- c(3,3)
+Sigma.id   <- matrix(c(1,0,0,1), 2, 2)
+Sigma.diag <- matrix(c(.5,0,0,5), 2, 2)
+Sigma.cov1 <- matrix(c(1,0.5,0.5,1), 2, 2)
+Sigma.cov2 <- matrix(c(.5,-0.75,-0.75,3), 2, 2)
+
+X.id    <- rmvnorm(1000,mu,Sigma.id)
+X.diag  <- rmvnorm(1000,mu,Sigma.diag)
+X.cov1 <- rmvnorm(1000,mu,Sigma.cov1)
+X.cov2 <- rmvnorm(1000,mu,Sigma.cov2)
+@ 
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Vecteur gaussien}
+  \framesubtitle{Exemples bivariés (I)}
+
+<<echo=FALSE,warning=FALSE>>=
+ggscatmat(data.frame(X.id)) + xlim(-2,8) + ylim(-2,8)
+@ 
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Vecteur gaussien}
+  \framesubtitle{Exemples bivariés (II)}
+
+<<echo=FALSE,warning=FALSE>>=
+ggscatmat(data.frame(X.diag)) + xlim(-2,8) + ylim(-2,8)
+@ 
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Vecteur gaussien}
+  \framesubtitle{Exemples bivariés (III)}
+
+<<echo=FALSE,warning=FALSE>>=
+ggscatmat(data.frame(X.cov1)) + xlim(-2,8) + ylim(-2,8)
+@ 
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Vecteur gaussien}
+  \framesubtitle{Exemples bivariés (IV)}
+
+<<echo=FALSE,warning=FALSE>>=
+ggscatmat(data.frame(X.cov2)) + xlim(-2,8) + ylim(-2,8)
+@ 
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Corrélations partielles et vecteur gaussien (I)}
+
+  \begin{block}{Indépendance  conditionnelle: \textcolor{black}{absence  de
+        \alert{\bf liens directs} entre variables}}
+    $X$ et $Y$ sont indépendantes conditionnellement à $Z$ (notée $X \indep Y | Z$) ssi 
+    \begin{equation*}
+       \prob(X,Y|Z) = \prob(X|Z) \times \prob(Y|Z).
+    \end{equation*}
+  \end{block}
+
+  \vspace{-.5cm}
+
+   \begin{block}{Covariance/corrélation   partielle}
+     C'est la covariance/corrélation une fois ôté l'effet d'une autre variable.
+    \begin{gather*}
+      \cov(X,Y|Z) = \cov(X,Y) - \cov(X,Z)\cov(Y,Z)/\var(Z),\\
+      \rho_{XY|Z} = \frac{\rho_{XY} -
+        \rho_{XZ}\rho_{YZ}}{\sqrt{1-\rho_{XZ}^2}\sqrt{1-\rho_{YZ}^2}}.
+    \end{gather*}
+  \end{block}
+
+  \vspace{-.5cm}
+  
+  \begin{block}{Cas gaussien}
+    Si $X,Y,Z$ sont jointement gaussiens, alors
+    \begin{equation*}
+      \alert{\cov(X,Y|Z) = 0  \Leftrightarrow \cor(X,Y|Z) = 0 \Leftrightarrow
+        X \indep Y | Z.}
+    \end{equation*}
+  \end{block}
+
+\end{frame}
+
+% \begin{frame}
+%   \frametitle{Partition de vecteurs gaussiens}
+
+%   \begin{proposition}[Conditionnement]
+%     Soit un vecteur gaussien et la décomposition
+%     \begin{equation*}
+%       Z = \begin{pmatrix}
+%         Z_1 \\ Z_2
+%       \end{pmatrix}  \sim   \mathcal{N}(\mathbf{0},\bSigma),   \quad
+%       \bSigma = \begin{pmatrix}
+%         \bSigma_{11} & \bSigma_{12} \\
+%         \bSigma_{21} & \bSigma_{22} \\
+%       \end{pmatrix},\quad
+%       \bOmega = \bSigma^{-1} = \begin{pmatrix}
+%         \bOmega_{11} & \bOmega_{12} \\
+%         \bOmega_{21} & \bOmega_{22} \\
+%       \end{pmatrix}.
+%     \end{equation*}
+%     Alors,
+%     \begin{equation*}
+%       Z_2|Z_1=\mathbf{z} \sim
+%       \mathcal{N}\left(-\bOmega_{21}\bOmega_{22}^{-1}\mathbf{z}, \bOmega_{22}^{-1} \right)
+%     \end{equation*}
+%     et
+%     \begin{equation*}
+%       \bOmega_{22}^{-1}     =      \bSigma_{22}     -     \bSigma_{21}
+%       \bSigma_{11}^{-1} \bSigma_{12}.
+%     \end{equation*}
+%   \end{proposition}
+
+% \vfill
+  
+%   \begin{block}{Corollaire}
+%     Corrélations partielles et matrice de covariance inverse sont liées
+%     \begin{equation*}
+%       \cor(Z_i,Z_j|Z_k, k\neq i,j) = - \frac{\Omega_{ij}}{\sqrt{\Omega_{ii}\Omega_{jj}}}
+%   \end{equation*}
+%   \end{block}
+
+% \end{frame}
+
+\subsection{Projection orthogonale}
+
+\begin{frame}
+  \frametitle{Sous espaces orthogonaux}
+
+  \begin{definitionf}[Sous espaces vectoriels orthogonaux]
+    \vspace{-.25cm}
+    \begin{itemize}
+    \item Les  sous espaces $V$  et $W$  sont orthogonaux si  tout les
+      vecteurs de $V$ sont orthogonaux à tous les vecteurs de $W$.
+    \item L'ensemble de tous les vecteurs orthogonaux à $V$ est appelé
+      l'orthogonal de $V$ et est noté $V^\bot$.
+    \end{itemize}    
+  \end{definitionf}
+  
+  \begin{theoreme}
+    Soit $V$ un sous-espace vectoriel de $\Rset^n$, alors tout vecteur
+    de  $\Rset^n$ se  décompose  de  manière unique  en  une somme  de
+    vecteurs de $V$ et de $V^\bot$.
+  \end{theoreme}
+  
+\end{frame}
+
+\begin{frame}
+  \frametitle{Projection orthogonale}
+
+  \begin{definitionf}[Projection orthogonale]
+    Soit $V$ un sous espace de $\Rset^n$, l'application linéaire qui à
+    un   vecteur   $\bu\in\Rset^n$   fait  correspondre   un   vecteur
+    $\bu^\star\in V$ tel que $\bu  - \bu^\star$ appartienne à $V^\bot$
+    est appelée projection orthogonale de $\bu$ dans $V$.
+  \end{definitionf}
+  
+  \begin{definitionf}[Projecteur orthogonal et  matrice]<2-> Soit $\bX$
+    une matrice $n\times p$ de plein rang telle que $n < p$.
+    \begin{itemize}
+    \item<2-> La projection orthogonale de $\bu\in\Rset^n$ dans l'image de $\bX$ vaut
+      \begin{equation*}
+        \proj{\bu}{\bX} = \underbrace{\bX \left(\bX^\intercal \bX\right)^{-1} \bX^\intercal}_{\bP_\bX}\ \bu.
+      \end{equation*}
+    \item<3> La projection orthogonale de $\bu\in\Rset^n$ dans le noyau de $\bX$ vaut
+      \begin{equation*}
+        \projorth{\bu}{\bX} = \underbrace{\left(\bI - \bX \left(\bX^\intercal \bX\right)^{-1} \bX^\intercal\right)}_{\bI - \bP_\bX} \ \bu.
+      \end{equation*}       
+    \end{itemize}
+  \end{definitionf}
+  
+\end{frame}

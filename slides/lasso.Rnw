@@ -1,0 +1,290 @@
+\subsection{Régression Lasso}
+
+\subsubsection{Définition de l'estimateur}
+
+\begin{frame}
+  \frametitle{Le Lasso}
+  \framesubtitle{Least Absolute Shrinkage and Selection Operator}
+
+  \begin{block}{Limite de la ridge}
+    La Ridge  régularise\dots mais on aimerait également sélectionner les prédicteurs significatifs.
+  \end{block}
+
+  \vfill
+
+  \begin{block}{Idée}
+    Proposer  une  contrainte  qui  force  la  \alert{parcimonie}  (en
+    forçant des entrées de $\hatbbeta$ à zéro).
+  \end{block}
+
+  \vfill
+
+  \onslide<2>{
+  \begin{overlayarea}{\textwidth}{.4\textheight}
+    \begin{columns}
+      \begin{column}[c]{.6\textwidth}
+        \begin{block}{Le Lasso comme problème d'optimisation}
+          Le Lasso estime $\hat{\bbeta}^{\text{lasso}}$ via
+          \begin{equation*}
+            \minimize_{\bbeta\in\R^{p+1}} \mathrm{RSS}(\bbeta), \quad \text{s.t.  }  \sum_{j=1}^p
+            \left|\beta_j\right|  \leq s,
+          \end{equation*}
+          où $s$ est un niveau de régularisation.
+        \end{block}
+      \end{column}
+      \begin{column}{.4\textwidth}
+        \includegraphics<2>{figures/lasso_set}
+      \end{column}
+    \end{columns}
+  \end{overlayarea}
+  }
+\end{frame}
+
+\input{intro_sparsity}
+
+\begin{frame}
+  \frametitle{Les singularités induisent de la "sparsité"}
+  \framesubtitle{Figures de Sylvie Huet}
+
+  \begin{overlayarea}{\textwidth}{\textheight}
+
+    \begin{equation*}
+      \sum_{i=1}^n (y_i-x_i^1\beta_1 - x_i^2\beta_2)^2, \qquad
+      \only<1>{\text{pas de constrainte}}
+      \only<2>{\text{s.c. } |\beta_1| + |\beta_2| < 0.75}
+      \only<3>{\text{s.c. } |\beta_1| + |\beta_2| < 0.66}
+      \only<4>{\text{s.c. } |\beta_1| + |\beta_2| < 0.4}
+      \only<5>{\text{s.c. } |\beta_1| + |\beta_2| < 0.2}
+      \only<6>{\text{s.c. } |\beta_1| + |\beta_2| < 0.0743}
+    \end{equation*}
+
+    \includegraphics<1>{figures/dess11}
+    \includegraphics<2>{figures/dess12}
+    \includegraphics<3>{figures/dess13}
+    \includegraphics<4>{figures/dess14}
+    \includegraphics<5>{figures/dess15}
+    \includegraphics<6>{figures/dess16}
+
+  \end{overlayarea}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Le Lasso comme méthode de régression pénalisée}
+
+  \begin{block}{}
+    On ne pénalise pas la constante, donc
+    \begin{itemize}
+    \item $\hat{\beta}_0 = \bar{\mathbf{y}}$,
+    \item on centre $\mathbf{y}$ et $\mathbf{x}_j$, $j=1,\dots,p$,
+    \item on normalise les prédicteurs avant d'ajuster,
+    \item on renvoie  $\hatbbeta$ dans l'échelle d'origine.
+    \end{itemize}
+  \end{block}
+
+  \vfill
+
+ Résolution d'un problème d'optimisaiton convexe
+  \begin{equation*}
+      \hat{\bbeta}^{\text{lasso}}   =   \argmin_{\bbeta\in\R^p}  \frac{1}{2}
+      \|\mathbf{y} - \mathbf{X} \bbeta\|^2 + \lambda \|\bbeta\|_1,
+  \end{equation*}
+  Pas de forme close, mais existe toujours et est unique lorsque $\mathbf{X}^\intercal \mathbf{X}$ est de plein rang.
+
+  \vfill
+
+  $\rightsquigarrow$  Le Lasso régularise et sélectionne les prédicteurs, mais n'a pas de solution explicite.
+
+\end{frame}
+
+
+
+\subsubsection{Propriétés et résolution pratique}
+
+\begin{frame}
+  \frametitle{Cas orthogonal et connexion avec l'OLS}
+  
+  À supposer que $\mathbf{X}^\intercal \mathbf{X} = \mathbf{I}$, alors
+    \begin{columns}
+      \begin{column}{.4\textwidth}
+        \begin{tikzpicture}[scale=.5,font=\small]
+          \draw[very thin,color=gray] (-4,-4) grid [xstep=1,ystep=1] (4,4);
+          \draw[->] (-4.5,0) -- (4.5,0) node[right] {$\beta^{\text{ols}}$};
+          \draw[->] (0,-4.5) -- (0,4.5) ;
+          \draw[color=blue] plot[samples=200] (\x,{max(0,1-2/abs(\x))*\x})
+          node[right] {Lasso};
+          \draw[dashed,color=black] plot (\x,{\x}) node[right] {OLS};
+
+          % units for cartesian reference frame
+          \foreach \x in {-4,-2,0,2,4}{
+            \draw (\x cm,1pt)  -- (\x cm,-3pt)
+            node[anchor=north,xshift=-0.09cm] {\scriptsize$\x$};
+            \draw (1pt,\x cm) -- (-3pt,\x cm)
+            node[anchor=east] {\scriptsize$\x$};
+          }
+        \end{tikzpicture}
+      \end{column}
+
+      \begin{column}{.55\textwidth}
+          \begin{small}
+            \begin{align*}
+              \hatbeta_j^{\text{lasso}} & = \left( 1-\frac{\lambda}{\left|
+                    \hatbeta_j^{\text{ols}}  \right|}  \right)^{\!\!+}
+              \\
+              & = S_{\text{thres}}(\hatbeta_j^{\text{ols}}, \lambda),
+              \hatbeta_j^{\text{ols}} \enspace,
+            \end{align*}
+            \begin{equation*}
+              \left| \hatbeta_j^{\text{lasso}} \right| = \left(
+                \left| \hatbeta_j^{\text{ols}} \right| - \lambda
+              \right)^{\!\!+}
+              \enspace.
+            \end{equation*}
+          \end{small}
+        \end{column}
+    \end{columns}
+
+$\rightsquigarrow$  correspond au  \alert{``seuillage-doux''}
+    $S_{\text{thres}}$ de  Donoho et al.
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Notion de sous-gradient et résolution}
+  
+  Un vecteur $\bbeta$ est solution du Lasso si et seulement si
+  \begin{equation*}
+    -\mathbf{X}^\intercal  (\mathbf{X}\bbeta  -  \mathbf{y}) +  \lambda
+    {\boldsymbol\theta} = \mathbf{0}, \quad \text{with } 
+     \left\{\begin{array}{ll}
+         \theta_j = \mathrm{sign}(\beta_j) & \text{ if } \beta_j \neq 0, \\
+        \theta_j \in [-1,1] & \text{ if } \beta_j = 0. \\
+      \end{array}\right.
+  \end{equation*}
+  
+  \vfill
+  
+  \begin{columns}[c]
+    
+    \begin{column}{.5\textwidth}
+      \begin{tikzpicture}[scale=.5,font=\small]
+        \node at (0,0) [circle,fill=black] {};
+        \draw[<->] (-4.5,0) -- (4.5,0) node[right] {$\beta$}; 
+        \draw[->] (0,0) -- (0,5.5)  node[left] {$|\beta|$}; 
+        \draw[color=blue] plot[samples=200] (\x,{abs(\x)}) node[right] {};
+      \end{tikzpicture}  
+    \end{column}  
+    
+    \begin{column}{.5\textwidth}
+      \begin{tikzpicture}[scale=.25,xscale=2,font=\small]
+        \draw[<->] (-4.5,0) -- (4.5,0) node[right] {$\beta$}; 
+        \draw[<->] (0,-5.5) -- (0,5.5) node[left] {$\mathrm{sign}(\beta)$}; 
+        \draw[color=blue] (-4.5,-5.5) -- (0,-5.5) ;
+        \draw[color=blue] (0,5.5) -- (4.5,5.5) ;
+      \end{tikzpicture}  
+    \end{column}
+
+  \end{columns}
+
+  \vfill
+
+  \begin{thebibliography}{99}
+    \setbeamertemplate{bibliography item}[book]    
+  \bibitem[boyd]{boyd} Boyd, S. and Vandenberghe, L. 2006. Convex optimization.
+  \end{thebibliography}
+\end{frame}
+
+\begin{frame}
+  \frametitle{L'algorithme de shooting}
+
+  \begin{thebibliography}{99}
+  \bibitem[fu]{fu} Fu, W., 1998.
+    \newblock Penalized regressions: the bridge vs. the lasso.
+  \end{thebibliography}
+
+  \vfill
+
+  Soit
+  \begin{equation*}
+    S(x,\lambda) = \mathrm{sign}(x) \max(0, |x|-\lambda ).
+  \end{equation*}
+  l'opérateur de seuillage doux.
+ 
+  \begin{enumerate}
+  \item Start with $\hat{\bbeta} = \bbeta^{\text{ols}}$
+  \item For each $j=1,\dots,p$, set
+    \begin{equation*}
+      \hat{\beta}_j     =     S\left(\sum_{i=1}^n    x_{ij}(y_i     -
+        \tilde{y}_i^{(j)}) ,\lambda \right) / 
+      \mathbf{x}_j^\intercal \mathbf{x}_j,
+    \end{equation*}
+    with $\tilde{y}_i^{(j)} = \sum_{k\neq j} x_{ik} \hat{\beta}_k$.
+  \item Repeat 2 until convergence
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}
+  \frametitle{LARs: Least angle regression}
+\framesubtitle{Une méthode populaire pour ajuster le Lasso}
+  \begin{thebibliography}{99}
+  \bibitem[lars]{lars}   B.   Efron,    T.   Hastie,   I.   Johnstone,
+    R. Tibshirani, 2004. \newblock Least Angle Regression.
+  \end{thebibliography}
+
+  \vfill
+  
+  \begin{block}{Algorithme efficace de calcuyl du chemin de solution}
+    La solution du  LARS  consiste en une fonction  décrivant
+    $\hatbbeta$ pour chaque valeur de  $\lambda$.
+    
+    \begin{itemize}
+    \item  construit un chemin   \textit{linéaire par morceau}  de la solution en aprtant du vecteur nul,
+    \item Coût proche de celui de l'OLS, 
+    \item bien adapté à la validation croisée.
+    \end{itemize}
+  \end{block}
+    
+\end{frame}
+
+
+<<child='lasso_prostate.Rnw'>>=
+@ 
+
+\subsubsection{Choix du paramètre de régularisation}
+
+\begin{frame}
+  \frametitle{Critères pénalisés}
+
+  \begin{block}{Degrés de liberté du LASSO}
+    On peut montrer que c'est simplement le nombre de prédicteurs actifs
+\[
+\mathrm{df}(\hat{\by}_\lambda^{\text{lasso}}) = \mathrm{card}(\set{j:\beta_j(\lambda)\neq 0}) = |\mathcal{A}|.
+\]
+  \end{block}
+
+  \begin{itemize}
+ % \item  \alert{Mallows'  $C_p$} , défini lorsque $\hat{\sigma}$ est sans biais
+ %     \begin{equation*}
+ %       C_p = \mathrm{err}_{\mathcal{D}} +2 \frac{|\mathcal{A}|}{n} \hat{\sigma}^2.
+ %     \end{equation*}
+    \item \alert{Akaike Information Criterion} équivalent au  $C_p$ en régression
+        \begin{equation*}
+          \mathrm{AIC} = -2 \mathrm{loglik} + 2\frac{|\mathcal{A}|}{n},
+        \end{equation*}
+      \item \alert{Bayesian   Information   Criterion}
+        \begin{equation*}
+          \mathrm{BIC} = -2\mathrm{loglik} + |\mathcal{A}|\log(n),
+        \end{equation*}
+      \item \alert{modified BIC} (lorsque $n < p$)
+        \begin{equation*}
+          \mathrm{mBIC} = -2\mathrm{loglik} + |\mathcal{A}|\log(p),
+        \end{equation*}
+      \item \alert{Extended BIC} ajoute un prior sur le nombre de modèles de taille  $|\mathcal{A}|$
+        \begin{equation*}
+          \mathrm{eBIC} = -2\mathrm{loglik} + |\mathcal{A}|(\log(n) + 2\log(p)).
+        \end{equation*}
+      \end{itemize}
+\end{frame}
+
+<<child='lasso_criteria.Rnw'>>=
+@ 

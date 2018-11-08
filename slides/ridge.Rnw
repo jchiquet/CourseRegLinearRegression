@@ -1,0 +1,444 @@
+\subsection{La régression Ridge}
+
+\subsubsection{Définition de l'estimateur}
+
+\begin{frame}
+  \frametitle{Définition}
+
+  \begin{block}{Remarque}
+    Si les   $\beta_j$ ne sont pas contraints,  ils peuvent prendre de très grandes valeurs et donc avoir une grande variance.
+  \end{block}
+
+  \begin{block}{Idée}
+    Pour contrôler la variance, il faut contrôler la taille des coefficients de  $\bbeta$. Cette approche pourrait réduire sensiblement l'erreur de prédiction.
+  \end{block}
+
+  \onslide<2>{
+  \begin{overlayarea}{\textwidth}{.4\textheight}
+    \begin{columns}
+      \begin{column}[c]{.6\textwidth}
+        \begin{block}{La Ridge comme problème de régularisation}
+          \begin{equation*}
+            \hat{\bbeta}^{\text{ridge}}     =    \argmin_{\bbeta\in\Rset^{p+1}}
+            \mathrm{RSS}(\bbeta), \quad  \text{s.c. } \sum_{j=1}^p \beta_j^2
+            \leq s,
+          \end{equation*}
+          où $s$ est un facteur de rétrécissement.
+        \end{block}
+      \end{column}
+      \begin{column}{.4\textwidth}
+         \includegraphics<2>{figures/ridge_set}
+      \end{column}
+    \end{columns}
+  \end{overlayarea}
+  }
+\end{frame}
+
+\begin{frame}
+  \frametitle{Un exemple en deux dimensions}
+
+  Considérons que le vrai modèle est  $Y = X_1 \beta_1 + X_2\beta_2
+  +  \varepsilon$. Si $X_1$ et   $X_2$ sont très corrélés, alors
+  $X_1\approx X_2$. De plus pour tout $\gamma\geq 0$,
+  \begin{align*}
+    Y & = X_1 (\beta_1 + \gamma) + X_2 (\beta_2 - \gamma) +
+    \gamma(X_1-X_2) + \varepsilon \\
+    & \approx X_1 (\beta_1 + \gamma) + X_2 (\beta_2 - \gamma) + \varepsilon.
+  \end{align*}
+  On prédit une réponse similaire pour un large panel d'estimateur de  $\bbeta$ indexés sur  $\gamma$.
+
+  \vfill
+
+  \onslide<2->{
+    Pour de petits $s$, la régression  Ridge contrôle
+    \begin{equation*}
+      (\beta_1 + \gamma)^2 + (\beta_2 - \gamma)^2
+    \end{equation*}
+    qui est minimale pour $\gamma =  (\beta_2-\beta_1)/2$, et dans ce cas $\beta_j = (\beta_1 + \beta_2)/2$.
+  }
+
+ \vfill
+
+\onslide<3>{$\rightsquigarrow$ La Ridge \og moyenne \fg\ les coefficients associés aux prédicteurs corrélés.}
+
+\end{frame}
+
+<<child='ridge_toy.Rnw'>>=
+@ 
+
+\begin{frame}
+  \frametitle{La ridge comme un problème de régression pénalisée}
+
+  \alert{On ne pénalise pas la constante} et on considère donc  $\bbeta  =
+  (\beta_1,\dots\beta_p)$ et on pose
+  \begin{itemize}
+  \item $\hatbeta_0 = \bar{\by} - \bar{x}\hatbbeta$
+  \item on centre $\mathbf{y}$ et $\mathbf{x}_j$, $j=1,\dots,p$.
+  \end{itemize}
+  \alert{On normalise $\bx_j$} pour ajuster et on renvoie les estimations
+  $\hatbbetaridge$ dans l'\alert{échelle d'origine}.
+
+  \vfill
+
+  \begin{block}{Forme Lagrangienne (convexe)}
+    \vspace{-.5cm}
+    \begin{align*}
+      \hat{\bbeta}^{\text{ridge}} &  =   \argmin_{\bbeta\in\R^p}  \frac{1}{2}
+      \|\mathbf{y} - \mathbf{X} \bbeta\|^2 + \lambda \|\bbeta\|^2\\
+      & = (\mathbf{X}^\intercal \mathbf{X} +
+      \lambda \mathbf{I}_p)^{-1} \mathbf{X}^\intercal \mathbf{y} = \mathbf{H}_\lambda \by.
+    \end{align*}
+  \end{block}
+
+  \vfill
+
+  \begin{block}{Forte convexité}
+    Contrairement à l'OLS, une solution unique existe toujours quand    $\lambda>0$ quelque soit le conditionnement de la matrice
+    $\mathbf{X}^\intercal \mathbf{X}$.
+  \end{block}
+
+\end{frame}
+
+\subsubsection{Propriétés et résolution pratique}
+
+\begin{frame}
+  \frametitle{Connexion à l'OLS}
+
+  Soit $\mathbf{S}_\lambda =  \mathbf{X}^\intercal \mathbf{X} + \lambda
+  \mathbf{I}_p$.  Alors
+  \begin{equation*}
+    \hat{\bbeta}^{\text{ridge}} =
+    \mathbf{S}_\lambda^{-1}        \mathbf{X}^\intercal       \mathbf{X}
+    \hat{\bbeta}^{\text{ols}} =
+    \left(\mathbf{I}_p - \lambda\mathbf{S}_\lambda^{-1}\right) \hat{\bbeta}^{\text{ols}}.
+  \end{equation*}
+  Lorsque       $\lambda=0$,       $\hat{\bbeta}^{\text{ridge}}$      et
+  $\hat{\bbeta}^{\text{ols}}$ coincident.
+
+  \begin{columns}
+    \begin{column}[c]{.5\textwidth}
+      Dans le cas d'un design orthonormal, $\mathbf{X}^\intercal
+      \mathbf{X}=\mathbf{I}$ et
+      \begin{equation*}
+        \hat{\bbeta}^{\text{ridge}} = \frac{1}{1+\lambda} \hat{\bbeta}^{\text{ols}}.
+      \end{equation*}
+    \end{column}
+
+    \begin{column}[c]{.5\textwidth}
+      \begin{center}
+        \begin{tikzpicture}[scale=.5,font=\small]
+          \draw[very thin,color=gray] (-4,-4) grid [xstep=1,ystep=1] (4,4);
+          \draw[->] (-4.5,0) -- (4.5,0) node[right] {$\beta^{\text{ols}}$};
+          \draw[->] (0,-4.5) -- (0,4.5) ;
+          \draw[color=blue] plot[samples=200] (\x,{1/(2)*\x})
+          node[right] {Ridge};
+          \draw[dashed,color=black] plot (\x,{\x}) node[right] {OLS};
+
+          % units for cartesian reference frame
+          \foreach \x in {-4,-2,0,2,4}{
+            \draw (\x cm,1pt)  -- (\x cm,-3pt)
+            node[anchor=north,xshift=-0.09cm] {\scriptsize$\x$};
+            \draw (1pt,\x cm) -- (-3pt,\x cm)
+            node[anchor=east] {\scriptsize$\x$};
+          }
+        \end{tikzpicture}
+      \end{center}
+    \end{column}
+  \end{columns}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Biais et variance de l'estimateur Ridge}
+
+  \begin{proposition}
+    \begin{equation*}
+      \E\left(\hat{\bbeta}^{\text{ridge}}-\hatbbetaols\right)   =
+      -\lambda \mathbf{S}_\lambda^{-1} \bbeta,       \var\left(\hat{\bbeta}^{\text{ridge}}\right)  =
+      \sigma^2 \mathbf{S}_\lambda^{-1} \mathbf{X}^\intercal \mathbf{X}
+      \mathbf{S}_\lambda^{-1}.
+    \end{equation*}
+    et
+    \begin{equation*}
+      \var(\hatbbetaols) - \var(\hatbbetaridge) \succeq 0
+    \end{equation*}
+    donc
+    $\var(x^T\hatbbetaols) \geq \var(x^T\hatbbetaridge)$ un $x$ fixé.
+  \end{proposition}
+
+  \vfill
+
+  \begin{itemize}
+  \item quand $\lambda\to 0$, sans biais, grande variance (OLS)
+  \item quand $\lambda\to \infty$, grand biais, variance nulle.
+  \end{itemize}
+
+  \vfill
+
+  $\rightsquigarrow$  Un compromis  est nécessaire  (\textit{i.e.}, un bon choix pour $\lambda$).
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Calcul pratique du chemin de solution}
+  \framesubtitle{Ridge et SVD}
+
+  \begin{block}{Décomposition en valeur singulière --
+      \href{{http://upload.wikimedia.org/wikipedia/commons/e/e9/Singular_value_decomposition.gif}}{lien
+        vers une illustration}}
+    \begin{equation*}
+      \mathbf{X} = \mathbf{U} \mathbf{D} \mathbf{V}^\intercal,
+    \end{equation*}
+    \vspace{-.5cm}
+    \begin{itemize}
+    \item  $\mathbf{U}$  est  une   matrice  $n\times  min(n,p)$  orthogonale
+      génératrice de l'espace ligne,
+    \item  $\mathbf{V}$  est  une   matrice  $p\times  min(n,p)$  orthogonale
+      génératice de l'espace colonne,
+    \item     $\mathbf{D}=     \mathrm{diag}(d_1,\dots,d_i,\dots,d_min(n,p))$
+      contient les valeurs singulières de $\mathbf{X}$.
+    \end{itemize}
+  \end{block}
+
+  \vfill
+
+  \begin{equation*}
+    \hat{\bbeta}^{\mathrm{ridge}}      =      \mathbf{V}
+    {\boldsymbol\Delta}_\lambda \mathbf{U}^\intercal \mathbf{y},
+  \end{equation*}
+  où ${\boldsymbol\Delta}_\lambda$ est une matrice diagonale telle que
+  $\Delta_i= d_i/(d_i^2+\lambda)$.
+
+  \vfill
+
+  \begin{block}{Coût algorithmique}
+    Le calcul du chemin de solution complet pour $K$ valeurs de $\lambda$ nécessite
+    \begin{enumerate}
+    \item une SVD ($\mathcal{O}(np^2)$)
+    \item un produit matriciel entre $\mathbf{V}$ et la matrice $p\times K$
+          ${\boldsymbol\Delta}_\lambda     \mathbf{U}^\intercal
+      \mathbf{y}$
+    \end{enumerate}
+  \end{block}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Interprétation liée à la SVD}
+
+  \begin{block}{Pour les moindres carrés}
+    \begin{equation*}
+      \mathbf{X}\hat{\bbeta}^{\text{ols}}                               =
+      \mathbf{X}(\mathbf{X}^\intercal\mathbf{X})^{-1}          \mathbf{X}^\intercal
+      \mathbf{y} = \mathbf{U} \mathbf{U}^\intercal \mathbf{y}.
+    \end{equation*}
+    où $\mathbf{U}^\intercal \mathbf{y}$ sont les coordonnées de 
+    $\mathbf{y}$ dans la base orthornormale $\mathbf{U}$.
+  \end{block}
+
+  \vfill
+
+  \begin{block}{Pour la ridge}
+    \begin{equation*}
+      \mathbf{X}\hat{\bbeta}^{\text{ridge}}                               =
+      \mathbf{X}(\mathbf{X}^\intercal\mathbf{X}                         +
+      \lambda\mathbf{I}_p)^{-1} \mathbf{X}^\intercal
+      \mathbf{y} = \sum_{j=1}^p \mathbf{u}_j \alert{\frac{d^2_j}{d^2_j+\lambda}}
+      \mathbf{u}_j^\intercal \mathbf{y}.
+    \end{equation*}
+  \end{block}
+
+  $\rightsquigarrow$ La régularisation ridge régularise plus les coefficients associées aux axes de faibles variance  $d_j$.
+
+\end{frame}
+
+<<child='ridge_prostate.Rnw'>>=
+@ 
+
+\begin{frame}
+  \frametitle{Ridge généralisée (I)}
+
+  \begin{block}{Critère généralisé}
+    \begin{align*}
+      \hat{\bbeta}^{\text{ridge}} &  =   \argmin_{\bbeta\in\R^p}  \frac{1}{2}
+      \|\mathbf{y} - \mathbf{X} \bbeta\|^2 + \lambda \bbeta^\intercal\bL\bbeta\\
+      & = (\mathbf{X}^\intercal \mathbf{X} +
+      \lambda \bL)^{-1} \mathbf{X}^\intercal \mathbf{y} = \mathbf{H}_{\lambda}^{\bL} \by.
+    \end{align*}
+    La matrice $\bL$ doit être semi-définie positive pour préserver la convexité.
+  \end{block}
+
+  \vfill
+
+  \begin{block}{Résolution}<2>
+    \begin{itemize}
+      \item Considérons les données transformées $\bX \bC^{-1}$ où
+    $\bC=\bL^{1/2}$  e.g.   par factorisation de Cholesky
+    $\bC^T \bC = \bL$.
+        \item Considérons la SVD  $\bU\bD\bV^T=\bX \bC^{-1}$ des données transformées
+    \end{itemize}
+    Alors
+    \begin{equation*}
+      \hatbbetaridge_{\bL}
+      = \bC^{-1} \bV \left(\bD^2+\lambda\bI\right)^{-1}\bD \bU^T \by.
+    \end{equation*}
+  \end{block}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Ridge généralisée (II)}
+
+  \begin{block}{Interpretation graphique}
+    Soit $\mathcal{G} = (\mathcal{E}, \mathcal{V}, \mathcal{W})$ un graphe pondéré. Alors
+    \begin{equation*}
+      \sum_{\alert{(i,j)\in\mathcal{E}}} w_{ij}  (\beta_j-\beta_i)^2 =
+    \bbeta^T \bL \bbeta,
+    \end{equation*}
+    où $\bL$ est la matrice \textit{Laplacienne} associé au graphe (semi-définie positive).
+  \end{block}
+
+  \vfill
+
+  \begin{block}{Interpretation bayésienne}
+    Supposons un prior Gaussien $\bbeta\sim\mathcal{N}(\mathbf{0},
+    \tilde{\bX} = \bU\bD\bL^{-1})$, i.e.,
+    \begin{equation*}
+      \log\P(\bbeta|\bL) = \bbeta^T L \bbeta + cst.,
+    \end{equation*}
+    alors $\hatbbetaridge_{\bL}$ est la moyenne a posteriori (le mode).
+  \end{block}
+
+\end{frame}
+
+\subsubsection{Choix du paramètre de régularisation}
+
+\begin{frame}
+   \frametitle{Les options classiques}
+
+\begin{block}{En estimant l'erreur de prédiction}
+On choisit le $\lambda$ minimisant l'erreur estimée
+\begin{itemize}
+\item par l'estimateur hold-out ou
+\item par validation croisée.
+\end{itemize}
+\end {block}
+
+\vfill
+
+\begin{block}{Par critère pénalisé}
+On choisit le $\lambda$ minimisant le critère de forme générale
+\begin{equation*}
+\mathrm{crit}(\lambda) = \mathrm{err}_\mathcal{D}(\lambda) + \mathrm{pen}(\mathrm{df}_\lambda)
+\end{equation*}
+$\rightsquigarrow$ Quel sens donner aux degrés de liberté pour la Ridge?
+\end {block}
+
+\end{frame}
+
+\begin{frame}
+ \frametitle{En estimant l'erreur de prédiction par validation croisée}
+ \framesubtitle{Pour la régression: PRESS (\textit{predicted residual sum of squares})}
+
+ \begin{block}{Principe}
+   \vspace{-.25cm}
+   \begin{enumerate}
+   \item Partitionner les données en $K$ sous-ensembles,
+   \item Utiliser successivement chaque sous-ensemble comme test,
+   \item Calculer l'erreur de test pour les $K$ sous-ensembles,
+   \item Moyenner les $K$ erreurs pour obtenir l'estimation finale.
+   \end{enumerate}
+ \end{block}
+
+ \vspace{-.25cm}
+
+ \begin{block}{Formalisme}<2>
+   Soit  $\kappa  :   \{1,\dots,n\}  \rightarrow  \{1,\dots,K\}$  une
+   fonction indicatrice de la partition de la $i$ème observation.  On
+   note  $\hat{\bbeta}^{-k}$ les  paramètres estimés  sur les  données
+   privées du $k$ième sous-ensemble. Alors
+  \begin{equation*}
+    \mathrm{CV}(\hat{\bbeta})     =    \frac{1}{n}\sum_{i=1}^n
+    (y_i - x_i^T \hat{\bbeta}^{-\kappa(i)} )^2
+  \end{equation*}
+  donne  l'estimation  de  l'erreur   de  prédiction  par  validation
+  croisée.
+ \end{block}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Validation croisée: remarques et compléments}
+
+  \begin{block}{Remarques}
+    \begin{enumerate}
+    \item Si $K=n$, LOOCV,
+    \item Si $K=2$, estimation "hold-out",
+    \item En grande dimension,  $K$ doit être choisi avec ``attention'',
+    \item $CV(\lambda)$ calcule l'erreur de CV le long du chemin de régularisation.
+    \end{enumerate}
+  \end{block}
+
+  \vfill
+  
+  \begin{proposition} Soit $\mathbf{H}$ une matrice de lissage (smoothing), i.e.,
+    un opérateur linéaire fini tel que  $\hat{\by} = \mathbf{H} \by$. Alors l'erreur CV LOO vérifie
+    \begin{equation*}
+      \mathrm{CV}     =  \frac{1}{n}\sum_{i=1}^n
+      (y_i - \hat{f}(x_i)^{-i})^2 = \frac{1}{n}\sum_{i=1}^n
+      \left(\frac{y_i - \hat{f}(x_i)}{1-H_{ii}}\right)^2.
+    \end{equation*}
+  \end{proposition}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Degrés de liberté effectifs}
+
+\begin{block}{Idées}
+  \begin{itemize}
+  \item Les degrés de liberté décrivent le  niveau de complexité d'un modèle .
+  \item Pour l'OLS, $\mathrm{df} = p$ (plus 1 pour la constante).
+  \end{itemize}
+\end{block}
+
+  \vfill
+
+  \begin{definitionf} Considérons une prédiction 
+    $\hat{\mathbf{y}}$ ajustée depuis une observation $\mathbf{y}$. Les degrés de liberté généralisés de la prédiction sont définis par 
+    \begin{equation*}
+      \mathrm{df}(\hat{\mathbf{y}})    =    \frac{1}{\sigma^2}
+      \sum_{i=1}^n \mathrm{cov}(\hat{y}_i,y_i).
+    \end{equation*}
+    $\rightsquigarrow$ Plus l'ajustement est proche des données, plus le modèle est complexe, plus grande est la covariance.
+  \end{definitionf}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Degrés de liberté effectifs: cas de la Ridge}
+
+  \begin{proposition} Considérons une méthode linéaire qui s'écrive:
+    \begin{equation*}
+      \hat{\mathbf{y}} = \mathbf{H} \mathbf{y}.
+    \end{equation*}
+    Les degrés de liberté effectifs du     modèle      $\hat{\mathbf{y}}$ vérifient
+    \begin{equation*}
+      \mathrm{df}(\hat{\mathbf{y}}) = \mathrm{Tr}(\mathbf{H}).
+    \end{equation*}
+  \end{proposition}
+
+  \vfill
+
+  \begin{block}{Ridge}
+    Pour la régression Ridge, $\mathrm{df}$ est une fonction décroissant de 
+    $\lambda$ qui tend vers 0 (ou 1 en considérant la constante):
+    \begin{equation*}
+      \mathrm{df}(\hat{\mathbf{y}}_\lambda) =\sum_{i=1}^p \frac{d_i^2}{d_i^2+\lambda},
+    \end{equation*}
+  \end{block}
+
+
+\end{frame}
+
+<<child='ridge_criteria.Rnw'>>=
+@ 

@@ -1,0 +1,121 @@
+\subsection{Illustration: cancer de la prostate}
+
+<<include=FALSE>>=
+library(knitr)
+opts_chunk$set(
+dev='pdf',fig.path='figures/ols'
+)
+@
+
+
+<<echo=FALSE>>=
+library(ggplot2)
+library(reshape2)
+@
+
+\begin{frame}[containsverbatim,allowframebreaks]
+  \frametitle{Exemple: données cancer de la prostate}
+
+  \begin{block}{97 patients atteints d'un cancer de la prostate}
+    Déterminer les liens entre le niveau d'un antigène spécifique au cancer ($\mathbf{y}$) et diverses mesures cliniques.
+  \end{block}
+
+<<>>=
+load("prostate.rda")
+dim(prostate)
+print(head(prostate), digits=3)
+@
+
+<<echo=FALSE,message=FALSE>>=
+p <- ggplot(data=melt(prostate[,-10]), aes(x=variable, y=value))
+p <- p + geom_boxplot()
+print(p)
+@
+
+\end{frame}
+
+\begin{frame}[containsverbatim,allowframebreaks]
+  \frametitle{Corrélations entre prédicteurs}
+
+<<echo=FALSE>>=
+library(GGally)
+@
+<<>>=
+print(as.dist(var(prostate[prostate$train,1:8])),digits=1)
+print(as.dist(cor(prostate[prostate$train,1:8])),digits=1)
+@
+
+<<echo=FALSE>>=
+p <- ggpairs(prostate[prostate$train,1:9],upper=list(continuous="cor",combo="box"))
+print(p)
+@
+
+\end{frame}
+
+\begin{frame}[containsverbatim]
+  \frametitle{Corrélations entre prédicteurs III}
+
+<<echo=FALSE>>=
+heatmap(cor(abs(subset(prostate, train==TRUE, 1:8))), symm=TRUE)
+@
+
+\end{frame}
+
+
+\begin{frame}[containsverbatim,allowframebreaks]
+  \frametitle{Illustration des limites de l'estimateur OLS}
+
+Pour étudier l'effet des corrélations, on ajuste un modèle avec des prédicteurs de variances comparables (normalisées).
+<<>>=
+prostate.train <- subset(prostate, train==TRUE, -train)
+prostate.train[, 1:8] <- scale(prostate.train[, 1:8], FALSE, TRUE)
+prostate.test <- subset(prostate, train==FALSE, -train)
+prostate.test[, 1:8] <- scale(prostate.test[, 1:8], FALSE, TRUE)
+model.full <- lm(lpsa~.,prostate.train)
+@
+
+   \begin{block}{Estimation de l'erreur de prédiction}
+  \end{block}
+<<>>=
+y.hat <- predict(model.full, newdata=prostate.test)
+y.test <- prostate.test$lpsa
+err.ols <- mean((y.test-y.hat)^2)
+print(err.ols)
+@
+
+<<size="tiny">>=
+summary(model.full)
+@ 
+\end{frame}
+
+\begin{frame}
+  \frametitle{Effet de la présence de colinéarité/redondance}
+  
+  Certains coefficients ont une grande variance (e.g. `pgg45` et `gleason`)
+
+  \begin{block}{Considération d'ordre statistique}
+    \alert{Les variables corrélées ne sont pas bien estimées},
+    \\
+
+    \begin{itemize}
+    \item  Elles portent la même information vis à vis de la réponse.
+    \item  Rappel:  $\cov(\hatbbeta_i,\hatbbeta_j)  \varpropto  - \cor(X_i,X_j|X_k,k\neq i,j)$.
+    \end{itemize}
+
+  \end{block}
+
+  \vfill
+
+  \begin{block}{Considération d'ordre numérique}
+    \alert{Les variables corrélées induisent un mauvais conditionnement de $\bX^T\bX$},
+
+    \begin{itemize}
+    \item       Rappel:  $\var(\hatbbetaols_p)       = \frac{\sigma^2}{\|\mathbf{z}_p\|}$ dans la procédure de   Gram-Schmidt.
+
+    \item l'OLS ne peut pas être calculé en présence de variables redondantes dans 
+      $\bX$ \alert{ou quand  $n<p$}.
+    \end{itemize}
+  \end{block}
+
+$\rightsquigarrow$ L'interprétation devient problématique
+\end{frame}

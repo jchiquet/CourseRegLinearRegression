@@ -1,0 +1,128 @@
+\pgfdeclareimage[height=0.8\textheight]{sparsity_loss}{figures/sparsity_loss}
+\pgfdeclareimage[height=0.5\textheight]{sparsity_proj}{figures/sparsity_proj}
+\pgfdeclareimage[height=0.375\textheight]{sparsity6}{figures/sparsity_6}
+\pgfdeclareimage[height=0.375\textheight]{sparsity8bis}{figures/sparsity_8bis}
+\pgfdeclareimage[height=0.375\textheight]{sparsity9}{figures/sparsity_9}
+\pgfdeclareimage[height=0.375\textheight]{sparsity10}{figures/sparsity_10}
+\pgfdeclareimage[height=0.375\textheight]{sparsity11}{figures/sparsity_11}
+\pgfdeclareimage[height=0.375\textheight]{sparsity12}{figures/sparsity_12}
+
+\begin{frame}
+  \frametitle{Interprétation géométrique de la parcimonie}
+
+  \begin{columns}
+    \begin{column}{0.425\textwidth}
+      \begin{tikzpicture}
+        \only<1>{%
+          \node (Surf2) at (0,0) {\pgfuseimage{sparsity_loss}}
+          node    at    (Surf2.west)    [rotate=90,yshift=5mm]
+          {$\ell(\beta_1,\beta_2)$}
+          node at (Surf2.south west) [xshift=5mm,yshift=5mm]{$\beta_2$}
+          node at (Surf2.south east) [xshift=-7.5mm,yshift=2.5mm]{$\beta_1$};
+        }
+        \only<2>{%
+          \node (titi) at (0,0) {\phantom{titi}};
+          \node (Surf3) at (0,-4.5) {\pgfuseimage{sparsity_proj}}
+          node at (Surf3.west) [rotate=90,yshift=2.5mm] {$\beta_2$}
+          node at (Surf3.south) [yshift=-2.5mm] {$\beta_1$};
+        }
+      \end{tikzpicture}
+    \end{column}
+    \begin{column}{.6\textwidth}
+      
+      \begin{equation*}
+        \begin{gathered}
+          \begin{array}{rl} 
+            \displaystyle \maximize_{\beta_1,\beta_2} & \ell(\beta_1,\beta_2) \\
+            \mathrm{s.c.} & \Omega(\beta_1,\beta_2) \leq c 
+          \end{array}
+          \\
+          \Updownarrow
+          \\
+          \begin{array}{rl} 
+            \displaystyle \minimize_{\beta_1,\beta_2} & -\ell(\beta_1,\beta_2) \\
+            \mathrm{s.c.} & \Omega(\beta_1,\beta_2) \leq c 
+          \end{array}
+          \\
+          \Updownarrow
+          \\
+          \minimize_{\beta_1,\beta_2} -\ell(\beta_1,\beta_2) + \lambda
+          \Omega(\beta_1,\beta_2)\\
+        \end{gathered}
+      \end{equation*}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+
+\pgfdeclareimage[height=0.375\textheight]{sparsity6}{figures/sparsity_6}
+\pgfdeclareimage[height=0.375\textheight]{sparsity8bis}{figures/sparsity_8bis}
+\pgfdeclareimage[height=0.375\textheight]{sparsity9}{figures/sparsity_9}
+\pgfdeclareimage[height=0.375\textheight]{sparsity10}{figures/sparsity_10}
+\pgfdeclareimage[height=0.375\textheight]{sparsity11}{figures/sparsity_11}
+\pgfdeclareimage[height=0.375\textheight]{sparsity12}{figures/sparsity_12}
+
+
+\begin{frame}
+  \frametitle{Interprétation géométrique de la parcimonie}
+  \framesubtitle{Cône de dualité}
+
+  {\centerline{généralise la notion de de vecteur normal}}
+
+  \bigskip
+
+  \begin{overlayarea}{\textwidth}{\textheight}
+
+
+    \begin{tikzpicture}
+      \only<1>{%
+      \node (Surf2) at (0,0) {\pgfuseimage{sparsity6}}
+              node at (Surf2.west) [rotate=90,yshift=2.5mm] {$\beta_2$}
+              node at (Surf2.south) [yshift=-1mm] {$\beta_1$};
+      }
+      \only<1-2>{%
+      \node (Surf3) at (4,0) {\pgfuseimage{sparsity8bis}}
+              node at (Surf3.west) [rotate=90,yshift=2.5mm] {$\beta_2$}
+              node at (Surf3.south) [yshift=-1mm] {$\beta_1$};
+      }
+      \only<1-3>{%
+        \node (Surf4) at (8,0) {\pgfuseimage{sparsity9}}
+                node at (Surf4.west) [rotate=90,yshift=2.5mm] {$\beta_2$}
+                node at (Surf4.south) [yshift=-1mm] {$\beta_1$};
+      }
+      \only<4>{%
+        \node (Surf5) at (8,0) {\pgfuseimage{sparsity10}}
+                node at (Surf5.west) [rotate=90,yshift=2.5mm] {$\beta_2$}
+                node at (Surf5.south) [yshift=-1mm] {$\beta_1$};
+      }
+      \only<3->{%
+        \node (Surf6) at (4,0) {\pgfuseimage{sparsity11}}
+                node at (Surf6.west) [rotate=90,yshift=2.5mm] {$\beta_2$}
+                node at (Surf6.south) [yshift=-1mm] {$\beta_1$};
+      }
+      \only<2->{%
+        \node (Surf7) at (0,0) {\pgfuseimage{sparsity12}}
+                node at (Surf7.west) [rotate=90,yshift=2.5mm] {$\beta_2$}
+                node at (Surf7.south) [yshift=-1mm] {$\beta_1$};
+      }
+    \end{tikzpicture}
+
+    \medskip
+
+    Soit $C$ un ensemble convexe,
+    \begin{itemize}
+    \item  $C^\star(x_0) =  \set{y|y^T(x-x_0) \geq  0,x\in C}$  est le
+      cône dual en $x_0$,
+    \item $N_C(x_0) = \set{y|y^T(x-x_0) \leq 0,x\in C}$ est le cône normal, 
+    \end{itemize}
+
+    \medskip
+
+    \only<4>{%
+      {\centerline{Forme des cônes $\Rightarrow$ pattern de parcimonie}}
+    }
+
+  \end{overlayarea}
+\end{frame}
+
+

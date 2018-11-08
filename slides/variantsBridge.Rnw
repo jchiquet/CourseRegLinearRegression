@@ -1,0 +1,294 @@
+\subsection{Variations autour du Lasso}
+
+\begin{frame}{Bridge regression}
+  
+  \begin{block}{A simple interpretable model: Gaussian linear regression}
+    Assume  a   linear  relationship  between  the   features  $\bX  =
+    (\bx_1,\dots,\bx_p)$ and the outcome $\by = (y_1,\dots, y_n)$ plus
+    an \emph{iid} Gaussian noise:
+    \begin{displaymath}
+      \by = \mu \I_n + \bX \bbeta^\star + \bvarepsilon, \qquad \bvarepsilon\sim\mathcal{N}(\bzr_n, \sigma^2\bI_n). 
+    \end{displaymath}        
+
+  \end{block}
+
+  \only<2>{
+    \begin{itemize}
+    \item OLS would fail in the $n<p$ setup or in presence of highly
+      correlated features
+    \item Bridge regression regularizes by controlling the size of the
+      coefficients
+    \end{itemize}
+  }
+  
+  \begin{block}{The bridge estimator}<3-> Force $\hatbbeta$ to live in
+    balls associated with the $\ell_\gamma$-norms:
+    \begin{equation*}
+      \hatbbeta_{\lambda,\gamma} = \argmin_{\bbeta\in\Rset^p}
+      \frac{1}{2} \|\by - \bX \beta \|^2_2 \quad \text{such that} \quad \left\| \bbeta
+      \right\|_\gamma^\gamma \leq c              
+    \end{equation*}
+    \onslide<4>{The Lagrangian form is
+      \begin{equation*}
+        \hatbbeta_{\lambda,\gamma} = \argmin_{\bbeta\in\Rset^p}
+        \frac{1}{2} \|\by - \bX \beta \|^2_2 +  \lambda \left\|  \bbeta \right\|_\gamma^\gamma.
+      \end{equation*}
+    }
+  \end{block}
+
+\end{frame}
+
+\begin{frame}{Bridge regression}
+
+  \begin{figure}[htbp!]
+    \centering
+    \begin{tabular}{ccc}
+      $\ell_0$ & $\ell_{1/3}$ & $\ell_{1/2}$ \\
+      \includegraphics[width=.125\textwidth]{figures/ell0ball}
+      & \includegraphics[width=.125\textwidth]{figures/ell13ball}
+      & \includegraphics[width=.125\textwidth]{figures/ell12ball} \\
+      \multicolumn{3}{c}{$\ell_1$} \\
+      \multicolumn{3}{c}{\includegraphics[width=.125\textwidth]{figures/ell1ball}} \\
+      $\ell_2$ & $\ell_3$ & $\ell_\infty$ \\
+      \includegraphics[width=.125\textwidth]{figures/ell2ball}
+      & \includegraphics[width=.125\textwidth]{figures/ell3ball}
+      & \includegraphics[width=.125\textwidth]{figures/ellinfball} \\
+    \end{tabular}
+    \caption{Contours of the feasible sets for various  $\gamma$ when $\bbeta\in\Rset^2$.}
+    \label{fig:bridge_set}
+  \end{figure}
+  
+\end{frame}
+
+
+\begin{frame}{Numerical illustration}
+  \framesubtitle{True model mimicking the block-wise structure between SNP for
+    the predictors}
+
+  \begin{block}{Dispatched the true parameters in 5 groups} 
+    \vspace{-.75cm}
+    \begin{small}
+      \begin{equation*}
+        \bbeta^\star = \left(\underbrace{0.25, \dots, 0.25}_{p/4 \text{ times}},
+          \underbrace{1,\dots,1}_{p/8 \text{ times}},
+          \underbrace{-0.25,\dots,-0.25}_{p/4 \text{ times}},
+          \underbrace{-1,\dots,-1}_{p/8 \text{ times}},
+          \underbrace{0.25, \dots, 0.25}_{p/4 \text{ times}}\right).
+      \end{equation*}
+    \end{small}
+  \end{block}
+  
+  \begin{block}{Faithful    block-wise    pattern    between    the    predictors}
+    We let $\bx_i \sim \mathcal{N}(\bzr_p, \bSigma)$ with
+    \pgfdeclareimage[height=1.8cm]{struct_cov}{figures/bloc_cov}
+    \begin{small}
+      \begin{equation*}
+        \bSigma \ = \ \parbox{2cm}{\pgfuseimage{struct_cov}} \ 
+        \text{ with } \Sigma_{ij} =
+        \begin{cases}
+          1 & i = j,\\
+          .25 & i,j \in \text{ blocks \{1,3,5\}}, \ i \neq j, \\
+          .75 & i,j \in \text{ blocks \{2,4\}}, \ i \neq j, \\
+          0 & \text{otherwise}.
+        \end{cases}
+      \end{equation*}
+    \end{small}
+  \end{block}
+
+  + Variance $\sigma^2$ of the noise chosen to met $R^2\approx 0.8$ on
+  the training set.
+  
+\end{frame}
+
+\begin{frame}{Numerical illustration}
+  \framesubtitle{Bridge regularization paths ($p=192, n=200$)}
+  
+  \begin{overlayarea}{\textwidth}{\textheight}
+    \only<1>{\begin{colormixin}{100!white}}
+      \only<2->{\begin{colormixin}{40!white}}
+        
+  \begin{figure}[htbp!]
+    \centering
+    \begin{small}
+      \begin{tabular}{@{}c@{}c@{~}c@{~}c@{}}
+        & $\gamma=1$ (Lasso) & $\gamma=2$ (Ridge) & $\gamma = \infty$ \\
+        \rotatebox{90}{\hspace{1.75cm}\small
+        $\hatbbeta_{\lambda,\gamma}$} 
+        & \includegraphics[width=.31\textwidth]{figures/ex_path_lasso}
+        & \includegraphics[width=.31\textwidth]{figures/ex_path_ridge}
+        & \includegraphics[width=.31\textwidth]{figures/ex_path_breg} \\
+        & \multicolumn{3}{c}{small     \hspace{.5cm}      $\longleftarrow$
+          \hspace{.5cm} regularization level $\lambda$ (log-scale)
+          \hspace{.5cm} $\longrightarrow$ \hspace{.5cm} large}
+      \end{tabular}
+    \end{small}
+    \caption{Regularization paths for the  bridge estimators}
+    \label{fig:ex_reg_path}
+  \end{figure}
+
+    \end{colormixin}
+    \only<2->{
+      \vspace{-4.5cm}
+      \begin{beamerboxesrounded}[upper=sur:head,lower=sur:bloc,shadow=true]{More structure?}
+        How   inducing  broader   types  of   structures?\\
+
+        \alert{Idea}: ``blend'' $\bOmega$ to introduce a broad variety of structures        
+      \end{beamerboxesrounded}
+    }
+  \end{overlayarea}      
+  
+\end{frame}
+
+
+\begin{frame}{Accounting for group structures}
+
+  \begin{block}{Group-Lasso norms}
+    \vspace{-.5cm}
+    \begin{equation*}
+      \|   \bbeta   \|_{1,\eta}    =   \sum_{k=1}^K   \omega_k
+      \left(\sum_{j\in\group[k]} \beta_j^\eta  \right)^{1/\eta} =
+      \sum_{k=1}^K \omega_k \|\bbeta_{\group[k]}\|_\eta.
+    \end{equation*}
+  \end{block}
+  
+  \vspace{-.25cm}
+  \begin{figure}[htbp!]
+    \centering
+    \begin{tabular}{@{}ccccc@{}}
+      $\ell_{(1,1)}$    &    $\ell_{(2,2)}$   &    $\ell_{(1,4/3)}$    &
+      $\ell_{(1,2)}$ \\[1.5ex]
+      (Lasso) & (Ridge) & \multicolumn{2}{c}{(Group-Lasso)} & \\ 
+      \includegraphics[width=.175\textwidth]{figures/norms_marie/lasso} &
+      \includegraphics[width=.175\textwidth]{figures/norms_marie/ridge3D} &
+      \includegraphics[width=.175\textwidth]{figures/norms_marie/hierarchical3D} & 
+      \includegraphics[width=.175\textwidth]{figures/norms_marie/grouplasso3D} \\
+      \includegraphics[width=.175\textwidth]{figures/norms_marie/lasso2D} &
+      \includegraphics[width=.175\textwidth]{figures/norms_marie/ridge2D} &
+      \includegraphics[width=.175\textwidth]{figures/norms_marie/hierarchical2D} & 
+      \includegraphics[width=.175\textwidth]{figures/norms_marie/grouplasso2D} \\
+    \end{tabular}
+  \end{figure}
+
+\end{frame}
+
+\begin{frame}{Account for direct relationships between the features (I)}
+  \framesubtitle{By means of fusion and graph penalties}
+  
+  \begin{block}{Prior knowledge: a proximity graph $\group[]$ between the variables.}
+    \only<1>{A         weighted         graph        $\group[]         =
+      (\mathcal{V},\mathcal{E},\mathcal{W})$       with       vertices
+      $\mathcal{V}=\set{1,\dots,p}$  and edges  $\mathcal{E}$ weighted
+      by             values            $\mathcal{W})=\set{\omega_{ij},
+        (i,j)\in\mathcal{E}}$.  
+    }
+  \end{block}
+
+  \begin{block}{Generalized ``fusion''/total-variation penalty}
+    \begin{equation*}
+      \sum_{(i,j)\in\mathcal{E}}     \omega_{ij}
+      |\beta_i - \beta_j | = \| \bD \bbeta\|_1,
+    \end{equation*}
+  \end{block}
+
+  \begin{block}{Generalized ridge/Laplacian penalty}
+    \begin{equation*}
+      \sum_{(i,j)\in\mathcal{E}} \omega_{ij} (\beta_i - \beta_j)^2 =
+      \bbeta^\top   \bD^T  \bD   \bbeta   =  \bbeta^\top   \bL  \bbeta   =
+      \|\bbeta\|_\bL^2.
+    \end{equation*}
+  \end{block}
+    
+\end{frame}
+
+\begin{frame}{Account for direct relationships between the features (II)}
+  \framesubtitle{By means of fusion and graph penalties}
+
+  \begin{block}{Example: connected neighbors}
+    $\group[]$ is  a chain graph  with edges $\mathcal{E}  = \set{(1,2),
+      (2,3), \dots, (p-1,p)}$, and
+    \begin{small}
+      \begin{equation*}
+        \bD =
+        \kbordermatrix{
+          & 1 & \dots & \dots & p \\
+          1 & -1 & 1 & & \\
+          \vdots & & \ddots & \ddots \\
+          p-1 & & & -1 & 1 \\
+        }, \quad
+        \bL = \bD^T \bD =
+        \kbordermatrix{
+          & 1 & \dots & \dots & \dots & p \\
+          1 & 1 & -1 & & \\
+          \vdots & -1 & 2 & -1 & \ddots \\
+          \vdots & & \ddots & \ddots & \ddots\\
+          & & & -1 & 2 & 1 \\
+          p & & & & -1 & 1 \\
+        }.
+      \end{equation*}
+    \end{small} 
+  \end{block}
+  
+  \begin{block}{``Classical'' TV/fusion penalty}
+    \begin{equation*}
+      \|\bD\bbeta\|_1 = \sum_{i=1}^{p-1}
+      |\beta_{i+1} - \beta_i |, \quad \bbeta^\top \bL \bbeta = \sum_{i=1}^{p-1} (\beta_{i+1} - \beta_i)^2
+    \end{equation*}
+  \end{block}
+
+\end{frame}
+
+\begin{frame}{Combining several effects}
+  \framesubtitle{Typically structure + sparsity}
+
+  \begin{block}{Mixture of penalties}
+    For $\alpha\in[0,1]$, consider for instance
+    \begin{equation*}
+      \begin{array}{rcl}
+        \alpha \| \bbeta \|_\gamma & + & (1-\alpha) \| \bbeta \|_\bL^2\\[1ex]
+        \alpha \| \bbeta \|_\gamma & + & (1-\alpha) \|\bD \bbeta \|_1.
+      \end{array}
+    \end{equation*}
+  \end{block}
+
+  \begin{figure}[htbp!]
+    \centering
+    \begin{small}
+      \begin{tabular}{@{}c@{\hspace{.2cm}}c@{\hspace{.2cm}}c@{\hspace{.2cm}}c@{\hspace{.2cm}}c@{}}
+        $\ell_1 + \ell_2^2$ & $\ell_\infty + \ell_2^2$ & $\ell_1 + \mathrm{TV}$ & $\ell_1 + \ell_2-\mathrm{TV}$ & $\ell_\infty + \ell_2-\mathrm{TV}$\\
+        elastic-net & & fused-Lasso & structured enet & \\
+        \includegraphics[width=.16\textwidth]{figures/ell1+ell2ball} &
+        \includegraphics[width=.16\textwidth]{figures/ellinf+ell2ball} &
+        \includegraphics[width=.16\textwidth]{figures/ell1+TVball} & 
+        \includegraphics[width=.16\textwidth]{figures/ell1+TVell2ball} & 
+        \includegraphics[width=.16\textwidth]{figures/ellinf+ell2TVball}   \\
+      \end{tabular}
+    \end{small}
+    \caption{A couple of examples for various $\alpha$}
+    \label{fig:sum_pen}
+  \end{figure}
+  
+\end{frame}
+
+
+\begin{frame}{Numerical illustration now accounting for structure}
+  \framesubtitle{Basic structure integration pays for \alert{interpretability}}
+
+  \begin{small}
+    \begin{figure}[htbp!]
+      \centering
+      \begin{tabular}{@{}c@{}c@{~}c@{~}c@{}}
+        &  $\ell_2$--TV  (Laplacian)  &   $\ell_1$  +  $\ell_2$--TV  &
+                                                               $\ell_\infty$ + $\ell_2$--TV \\ \rotatebox{90}{\hspace{1.75cm}\small $\hatbbeta_{\lambda,\gamma}$} 
+        & \includegraphics[width=.31\textwidth]{figures/ex_path_ridge_str}
+        & \includegraphics[width=.31\textwidth]{figures/ex_path_enet_str}
+        & \includegraphics[width=.31\textwidth]{figures/ex_path_breg_str} \\
+        & \multicolumn{3}{c}{small     \hspace{.5cm}      $\longleftarrow$
+          \hspace{.5cm} regularization level $\lambda$ (log-scale)
+          \hspace{.5cm} $\longrightarrow$ \hspace{.5cm} large}
+      \end{tabular}
+      \caption{Regularization paths for the structured estimators}
+      \label{fig:ex_reg_path_str}
+    \end{figure}
+  \end{small}
+  
+\end{frame}

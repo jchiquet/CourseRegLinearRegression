@@ -1,0 +1,97 @@
+\documentclass{beamer}
+
+<<echo=FALSE, message=FALSE>>=
+rm(list=ls())
+library(ggplot2)
+library(GGally)
+library(quadrupen)
+@
+
+<<preamble, child='common_preamble.Rnw'>>=
+@
+
+\def\currentchapter{Introduction aux méthodes régularisées et parcimonieuses}
+
+\begin{document}
+
+\dotitlepage
+
+\dotoc
+
+\section{Prérequis}
+
+<<algebra, child='algebra.Rnw', fig.path="figures/algebra-">>=
+@
+
+<<backgroundOLS, child='backgroundOLS.Rnw', fig.path="figures/baclOLS-">>=
+@
+
+\section{Motivations: les limites du modèle linéaire}
+
+<<statlearn, child='statlearn.Rnw', fig.path="figures/statlearn-">>=
+@
+
+<<collinearityOLS, child='collinearityOLS.Rnw', fig.path="figures/critOLS-">>=
+@
+
+<<ols_prostate, child='ols_prostate.Rnw', fig.path="figures/ols_prostate-">>=
+@
+
+<<highdim, child='highdim.Rnw', fig.path="figures/highdim-">>=
+@
+
+\section{Sélection de variables}
+
+<<selection, child='selection.Rnw', fig.path="figures/selection-">>=
+@
+
+<<subset_prostate, child='subset_prostate.Rnw', fig.path="figures/subset_prostate-">>=
+@
+
+\begin{frame}
+  \frametitle{Sélection variable : quelques remarques}
+
+  \begin{block}{Interprétabilité}
+    \begin{enumerate}
+    \item Si  le vrai $\mathcal{S}$ ne contient que \alert{\bf quelques
+      variables liées à la  response},\\
+      $\rightsquigarrow$ les algorithmes de  sélection  peuvent  retrouver  les  prédicteurs pertinents.
+    \item  Si  le vrai   $\mathcal{S}$  contient \alert{\bf beaucoup  de
+      variables  très corrélées}\\
+      $\rightsquigarrow$  les  variables sélectionnées  seront difficiles à interpréter.
+    \end{enumerate}
+  \end{block}
+
+  \vfill
+
+  \begin{block}{Limites liées à la stabilité}
+    En présence de prédicteurs très corrélés ou lorsque $n < p$, \alert{\bf de  petites perturbations} des
+   données  peuvent  provoquer  de \alert{\bf grandes  différences}  entre  les
+    ensembles de variables sélectionnées.
+   \end{block}
+  
+\end{frame}
+
+\section{Régularisation}
+
+<<shrinkage, child='shrinkage.Rnw', fig.path="figures/shrinkage-">>=
+@
+
+<<ridge, child='ridge.Rnw', fig.path="figures/ridge-">>=
+@
+
+<<lasso, child='lasso.Rnw', fig.path="figures/lasso-">>=
+@
+
+
+<<variantsBridge, child='variantsBridge.Rnw', fig.path="figures/varBridge-">>=
+@ 
+
+<<variantsLasso, child='variantsLasso.Rnw', fig.path="figures/varLasso-">>=
+@ 
+
+<<graphlasso, child='graphlasso.Rnw', fig.path="figures/ggm-">>=
+@ 
+
+\end{document}
+

@@ -1,0 +1,141 @@
+\subsection{Qualité d'un modèle de régression}
+
+\begin{frame}
+  \frametitle{Apprentissage statistique}
+
+  \begin{block}{Problème supervisé}
+    \begin{enumerate}
+    \item une variable \alert{réponse} 
+      \begin{itemize}
+      \item soit quantitative (taille d'une tumeur, temps de survie, etc.)
+      \item ou nominale (sous-type de cancer, degré d'avancement, etc.)
+      \end{itemize}
+    \item un ensemble de \alert{prédicteurs} 
+      \begin{itemize}
+      \item mesures cliniques (niveau d'expression, )
+      \item âge, fumeur/non fumeur, taille, poids, etc.
+      \end{itemize}
+    \end{enumerate}
+  \end{block}
+
+  \vfill
+
+  \begin{block}{Stratégie} Pour un ensemble de données
+    d'entraînement, on cherche a
+    \begin{enumerate}
+    \item proposer un modèle,
+    \item apprendre ce modèle sur l'ensemble d'entraînement,
+    \item tester ce modèle sur de nouvelles observations.
+    \end{enumerate}
+  \end{block}
+
+  \vfill
+
+  $\rightsquigarrow$ \alert{Un bon modèle doit prédire correctement de
+    nouvelles réponses.}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Modèle de régression}
+
+  On cherche une fonction $f$ qui prédise $Y$ via $X$.
+
+  \begin{proposition}  Le  modèle  $f(X)=\E[Y|X]$  minimise  la  perte
+    quadratique, c'est-à-dire
+    \begin{equation*}
+      f(X)   =    \argmin_{\varphi} \mathbb{E}[(Y - \varphi(X))^2].
+    \end{equation*}
+    $\rightsquigarrow$ La meilleur prédiction de $Y$ à tout point $X = x$
+    en terme d'espérance de l'erreur quadratique est l'espérance conditionnelle.
+  \end{proposition}
+
+  \vfill
+
+  Cette remarque est à l'origine des modèles de régression
+    \begin{equation*}
+      Y = f(X) + \varepsilon,
+    \end{equation*}
+    où
+    \begin{itemize}
+    \item $\varepsilon$ est un terme d'erreur additif tel que 
+      $\E[\varepsilon]=0$, $\var[\varepsilon]=\sigma^2$,
+    \item $f(x) = \E[Y | X = x]$ est la \alert{\bf fonction de régression}.
+    \end{itemize}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Stratégie d'apprentissage}
+
+  \begin{block}{Problème}
+    Les  distributions  $\P(Y|X)$  et   $\P(X)$  sont  inconnues  donc
+    $\E(Y|X), \err(f(X)$ inaccessibles: il faut les \alert{\bf estimer}.
+  \end{block}
+
+  \vfill
+
+  \begin{block}{Stratégie}
+    \begin{enumerate}
+    \item On se donne une famille $\mathcal{F}$ de modèles\\ 
+        \onslide<2>{\textit{Pour la régression linéaire, $\mathcal{F} = \set{X^T\bbeta, \bbeta\in\Rset^p}$.}}
+      \bigskip
+    \item   On   ajuste   $\hat{f}\in\mathcal{F}$  sur   des   données
+      d'entraînement $\mathcal{D}$\\ 
+      \onslide<2>{\textit{On calcule l'estimateur des
+        moindre carré $\hatbbetaols$ et $\hat f = \hat Y = \bX \hatbbetaols$}}\bigskip
+    \item On estime l'erreur de prédiction $\err$  à l'aide des données test $\mathcal{T}$.
+       \begin{equation*}
+         \onslide<2>{\text{Par exemple, }\hat{\err}(\bX_{\mathcal{T}}\hatbbetaols) = \frac{1}{n} \left\|
+         \by_{\mathcal{T}}- \bX_{\mathcal{T}} \hatbbetaols_{\mathcal{D}}\right\|^2.}
+       \end{equation*}
+    \end{enumerate}
+  \end{block}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Compromis Biais/Variance}
+
+  À un nouveau point $X=x$,
+  \begin{overlayarea}{\textwidth}{\textheight}
+    \begin{equation*}
+      \err(\hat{f}(x))                =
+      \underbrace{\sigma^2}_{\substack{\text{incompressible}\\\text{error}}}
+      +
+      \underbrace{\text{bias}^2(\hat{f}(x))                    +
+        \var(\hat{f}(x))}_{\mathrm{MSE}(\hat{f}(x))}.
+    \end{equation*}
+
+    \begin{center}
+      \includegraphics[width=.7\textwidth]{figures/tradeoff}
+    \end{center}
+  \end{overlayarea}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Cas de la régression linéaire}
+
+  \begin{block}{Erreur de prédiction}
+    On peut montrer pour $\bX$ fixé que 
+   \begin{equation*}
+      \hat{\mathrm{err}}(\bX \hatbbetaols)  = \sigma^2 \frac{(p+1)}{n} + \sigma^2.
+    \end{equation*}
+  \end{block}
+  \vfill  
+  
+  \begin{block}{Thérorème de Gauss-Markov}
+    $\hat  Y  = X^\intercal  \hatbbetaols$  est  le meilleur  modèle
+    (i.e. de plus faible variance)  pour les estimateurs sans biais de
+    $\bbeta$.
+  \end{block}
+  \vfill
+
+  $\rightsquigarrow$  Y a-t-il  des situations  où l'on  a
+    intérêt à utiliser un \alert{\bf estimateur biaisé de plus faible variance} ?
+\end{frame}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "slides.tex"
+%%% End:

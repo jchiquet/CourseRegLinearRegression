@@ -1,0 +1,68 @@
+
+\begin{frame}[containsverbatim,allowframebreaks]
+  \frametitle{Lasso sur données  cancer de la prostate}
+
+  \vfill
+Calcul du chemin de solution du Lasso
+
+<<>>=
+library(quadrupen)
+lasso.path <- quadrupen::lasso(x.train,y.train)
+@
+
+\vfill
+
+Calcul de l'erreur de prédiction sur l'ensemble test
+<<tidy=FALSE>>=
+err <- colMeans((y.test-predict(lasso.path,x.test))^2)
+@
+
+\vfill
+
+On choisit $\lambda^\star$ minimisant cette erreur
+<<>>=
+lasso.path@lambda1[which.min(err)]
+@
+
+\framebreak
+
+L'erreur de prédiction est significativement plus petite que pour l'OLS et la ridge, avec seulement 5 coefficients + la constante
+<<>>=
+err[which.min(err)]
+lasso.path@coefficients[which.min(err), ]
+@
+
+\end{frame}
+
+\begin{frame}[containsverbatim]
+  \frametitle{Erreur de prédiction sur les données test}
+
+<<fig.height=5>>=
+qplot(log10(lasso.path@lambda1), err) + geom_line() + 
+geom_vline(xintercept=log10(lasso.path@lambda1[which.min(err)]), lty=3)
+@
+\end{frame}
+
+\begin{frame}[containsverbatim]
+  \frametitle{Chemin de solution (en fonction de $\lambda$)}
+
+<<fig.height=6>>=
+plot(lasso.path, labels=colnames(x.train), log.scale=FALSE)
+@
+\end{frame}
+
+\begin{frame}[containsverbatim]
+  \frametitle{Chemin de solution (en fonction de $log_{10}(\lambda)$)}
+
+<<fig.height=6>>=
+plot(lasso.path, labels=colnames(x.train))
+@
+\end{frame}
+
+\begin{frame}[containsverbatim]
+  \frametitle{Chemin de solution (proportion de régularisation $s$)}
+
+<<fig.height=6>>=
+plot(lasso.path, labels=colnames(x.train), xvar="fraction")
+@
+\end{frame}

@@ -1,0 +1,321 @@
+---
+title: "Étude de quelques méthodes régularisées pour la régression linéaire"
+date: séminaire professionel ENSAI - 2018
+author: julien.chiquet@gmail.com
+fontsize: 11pt
+lang: fr
+geometry: left=1.45in,top=1.35in,right=1.45in,bottom=1.35in
+classoption: a4paper
+linkcolor: red
+urlcolor: blue
+citecolor: green
+output:
+  pdf_document:
+    number_sections: true
+    citation_package: natbib
+    includes:
+      in_header: preamble.sty
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Objectifs
+
+Ces séances visent à étudier les propriétés empiriques de quelques méthodes régularisées à partir de données simulées et sur un exemple de données réelles. Un objectif connexe est la mise en place d'une méthodologie de simulations numériques, démarche très utile dans le cadre de travaux de recherche.
+
+- utilisation de la sélection stepwise, de la régression ridge, du Lasso et de ses variantes
+- mise au point d'un protocole complet de simulations dans le cadre du modèle linéaire
+- acquisition de nouvelles compétences `R` (**glmnet**, **parallel**, **ggplot2**)
+- application à un jeu de données en génomique
+
+*Remarques* : les étudiants peuvent travailler en binôme.
+
+# Mise au point d'un protocole de simulation
+
+La simulation de données est (ou *devrait être*) un passage obligé de tout travail de recherche en statistique --  théorique ou appliquée --  lors de l'étude d'une nouvelle stratégie d'estimation. En effet, les simulations sont un moyen d'étude des propriétés des méthodes dans un cadre parfaitement *contrôlé*. Afin de préciser les *propriétés d'intérêt*, il est nécessaire de ce donner un cadre d'étude. Nous choisissons ici le problème de la sélection de variables prédictives dans le modèle linéaire.
+
+## Cadre d'étude: sélection de variables dans le modèle linéaire
+
+Pour une méthode de sélection de variables, les *propriétés d'intérêt* sont
+
+- la capacité à retrouver les variables pertinentes,
+- la capacité à prédire une nouvelle observation,
+- la précision de l'estimation. 
+
+La notion de  *cadre contrôlé* se réfère aux hypothèses qui sont faites lors de la définition du modèle statistique. Un intérêt important des simulations numériques est de se placer dans le "bon cas" (*i.e.* celui prévu par la théorie) afin d'étudier les propriétés de la méthode dans ce cadre: on s'assure que les performances sont conformes à celles attendues. On peut ensuite se permettre de s'éloigner du cadre bien contrôlé par la théorie afin d'étudier la robustesse de la méthode à des écarts aux hypothèses. 
+
+On s'attache ici au modèle linéaire gaussien homoscédastique: 
+\begin{equation}
+  \label{eq:lm}
+  y_i = x_i^\top \beta^\star +\varepsilon_i, \,\, \varepsilon_i \sim \mathcal{N}(0,\sigma^2), \ i=1,\dots,n
+\end{equation}
+
+soit matriciellement
+\[\by = \bX \bbeta^\star + \bvarepsilon, \]
+avec $\by=(y_1,\dots,y_n)^\top$ un vecteur de $\Rset^n$, $\bX$ une matrice de $\mathcal{M}_{n,p}(\Rset)$ et $\bbeta^\star=(\beta_1,\dots,\beta_p)^\top$ un vecteur de $\mathbb{R}^p$ dont $p_0$ éléments sont non-nuls. On note $\mathcal{A}^\star = \{j:\beta_j^\star \neq 0\}$ l'ensemble de ces éléments. On suppose que les prédicteurs sont gaussiens multivariés de matrice de variance-covariance $\bSigma$.
+
+## Contrôle de la difficulté
+
+Lors de l'analyse d'une procédure statistique, il est important de pouvoir contrôler précisément la difficulté du problème pour déterminer le champs d'applicabilité de cette méthode. Ceci permet en particulier de mesurer sa robustesse aux écarts aux hypothèses requit par l'analyse théorique.
+
+Dans le cadre de la sélection de variables pour le modèle linéaire gaussien, divers phénomènes sont associés à la difficulté du problème. Dans le cas des méthodes de sélection de variables comme le LASSO, ces phénomènes sont liés par l'analyse théorique aux paramètres du modèle linéaire qui permettent de déterminer plus ou moins précisément les conditions d'applicabilité de cette méthode. On pense en particulier 
+
+- aux phénomène de grande dimension ($n<p$), contrôlé par le rapport $n/p$ ,
+- au niveau de "sparsité" du problème, contrôlé par le cardinal de $\mathcal{A}^\star=p_0^\star$,
+- au niveau de bruit, qu'on peut contrôler par le rapport signal sur bruit ou le coefficient de détermination,
+- à la structure de dépendance entre les prédicteurs, i.e., la covariance $\bSigma$ du vecteur $X=(X_1,\dots,X_p)$.
+
+On propose dans la suite d'intégrer ces divers paramètres à une fonction `rlm` permettant de générer des données issues du modèle \eqref{eq:lm}.
+
+### V1: modèle linéaire simple
+
+Écrire une fonction `rlm(n,p,p0,sigma)` qui renvoie une liste contenant un vecteur `y`, une matrice `x`, un vecteur `beta` avec $p_0$ entrées non nulles de magnitude choisie selon une loi uniforme entre 1 et 2 et de signe positif ou négatif. Les prédicteurs sont tirés selon des distribution gaussiennes univariés indépendantes de variance unitaire.
+
+### V2: intégration du coefficient de détermination
+
+Plutôt que de fixer la variance du bruit $\sigma^2$, on préfère fixer la puissance du signal par rapport à la puissance du bruit, par exemple en contrôlant le niveau du coefficient de détermination, qui mesure la part de variabilité expliquée par le modèle:
+\[R^2 = \frac{SCM}{SCT} = 1 - \frac{SCR}{SCT}.\]
+
+Déterminer dans le cadre du modèle \eqref{eq:lm} quelle valeur de $\sigma^2$ choisir pour obtenir des données ayant un coefficient de détermination donné. Modifier la fonction en conséquence: elle prend désormais en argument `rlm(n,p,p0,r2)` et renvoie une liste `list(y,x,beta,sigma)`.
+
+### V3: structure de dépendance des prédicteurs
+
+Les prédicteurs ont pour l'instant été considérés comme indépendants. On propose de modéliser une forme de dépendance entre prédicteurs à l'aide d'une loi gaussienne multivariée telle que $X \sim \mathcal{N}(\bzr, \bSigma)$. Outre le cas indépendant ($\bSigma = \bI_p$), on considèrera 2 autres scénarios:
+
+- une dépendance de type longitudinale: $\Sigma_{ij} = \rho^{|i-j|}$.
+- une dépendance par bloc: soit une partition en $K$ groupes, alors  
+\[
+  \Sigma_{ij} = \left\{\begin{array}{rl} 
+    1 & \text{ si $i=j$}, \\
+    \rho & \text{ si $i$ et $j$ sont dans le même groupe}, \\
+    0 & \text{sinon}. \\
+  \end{array}\right.
+\]
+
+Écrire deux fonctions  `rlm.long(n, p, p0, r2, rho)` et `rlm.bloc(n, p, K0, r2, rho, K)` adaptées à ces deux scénarios. On remarquera que dans le second cas, la sparsité est défini en terme de nombre de bloc non nuls $K_0$. Pour la génération d'un vecteur gaussien multivarié, on utilisera le package **mvtnorm**.
+
+### V4: ensemble test, ensemble d'apprentissage
+
+Afin d'évaluer les performances des estimateurs, il est indispensable de générer des données de test. Amender les fonctions précédentes de sorte à prendre en argument `n.test` et renvoyer en plus des variables précédentes des ensembles `train` et `test` indiçant les observations. On pourra affecter une valeur par défaut à `n.test` dépendant de `n.train`, par exemple `10*n.train`.
+
+------- 
+
+On dispose finalement de 3 fonctions `rlm.indep`, `rlm.long` et `rlm.bloc` renvoyant une liste contenant les variables `y,x,beta,Sigma,sigma,train,test` qui serviront à la génération de données pour les simulations.
+
+## Implémentation des méthodes régularisées
+
+On se propose d'étudier les procédures suivantes:
+
+- la régression "stepwise" avec critère AIC et BIC,
+- la régression "ridge", 
+- la régression "lasso", 
+- la variante "elastic-net" (ridge + lasso),
+
+On comparera ces procédures dites régularisées aux méthodes de référence suivantes:
+
+- les moindres carrés ordinaires,
+- les moindres carrées oracle (où l'on suppose connaître $\supp^\star$).
+
+Écrire une fonction par estimateur, du type  `getStepwiseAIC`, `getStepwiseBIC`, `getLasso`, etc. qui récupère la valeur de $\hatbbeta$. Toutes les méthodes seront implémentées à l'aide de la fonction `glmnet` du package du même nom sauf la régression stepwise (fonction `step` du package **MASS**, ou regsubset du package **leaps**). 
+
+*Quelques remarques*
+
+- Pour les expériences en grande dimension ($n< p$), l'estimateur des moindres carrés n'est pas défini de manière unique: on utilisera un estimateur avec une faible pénalité ridge pour le régulariser.
+- Pour les méthodes régularisées, on choisira le paramètre $\lambda$ par validation croisée à l'aide des fonctions \texttt{cv.glmnet}.
+
+### Lasso adaptatif
+
+Le Lasso adaptatif est une version modifiée du lasso proposée pour palier notament au problème de biais. L'idée est de procéder en deux temps. Dans un premier temps, on estime des paramètres $\widehat{\beta}_{\text{init}}$ à l'aide du lasso. Ce premier estimateur va être utilisé comme poids pour une deuxième étape de lasso, en fixant $w_j=\widehat{\beta}_{j,\text{init}}$ tel que:
+\[
+\hatbbeta_{\lambda}^\textrm{ada} = \argmin_{\bbeta\in\Rset^p} \left(\frac{1}{n}\|\by - \bX \bbeta\|^2_2 + \lambda \sum_{j=1}^p \frac{|\beta_j|}{|w_j|} \right).
+\]
+L'idée est que si $\widehat{\beta}_{j,\text{init}}=0$ alors $\widehat{\beta}_{j,\text{ada}}=0$ de telle sorte que la première étape de lasso sert de pré-sélection. De plus, si $\widehat{\beta}_{j,\text{init}}$ est grand, le lasso adaptatif utilisera une pénalisation plus petite, donc un shrinkage plus petit pour le coefficient $j$, ce qui est sensé diminuer le bias pour ce coefficient.
+
+Implémentez le lasso adaptatif à l'aide de l'option \texttt{penalty.factor} dans \texttt{glmnet} qui permet d'introduire des $\lambda$s différents pour chaque élement de $\beta$. Créer une fonction \texttt{getadalasso(X,Y,beta.init)} qui calcule l'estimateur lasso adaptatif à partir d'un premier vecteur $\widehat{\beta}_{\text{init}}$.
+
+### Group-Lasso
+
+Une autre modification populaire du Lasso est une version groupée du lasso -- ou group-Lasso -- qui suppose la connaissance d'une partition *a priori* des prédicteurs notées $\mathcal{G} = \set{\mathcal{G}_1,\dots,\mathcal{G}_K}$. La sélection s'opère donc par groupe:
+
+\[
+\hatbbeta_{\lambda}^\textrm{grp} = \argmin_{\bbeta\in\Rset^p} \left(\frac{1}{n}\|\by - \bX \bbeta\|^2_2 + \lambda \sum_{k=1}^K \|\bbeta_{\mathcal{G}_k}\| \right).
+\]
+
+Implémentez une fonction `getgrplasso` à l'aide du package **grplasso**. 
+
+### Autres méthodes
+
+Pour les plus avancés, il existe une variété de méthodes de sélection de variables à la marge des méthodes régularisées. EN particulier
+
+- des pénalités concaves, de moindre biais que la norme $\ell_1$ du lasso (voir le package **picasso**)
+- des méthodes d'ensemble comme le boosting (voir le package **gbm**) améliorant les capacité de prédiction
+
+Les étudiants les plus avancés pourront intégrer ces méthodes de sélection de variables.
+
+# Comparaison des méthodes
+
+## Évaluation des performances
+
+On s'intéresse aux performances des méthodes à la fois en terme de capacité prédictive et en terme de sélection de variables. On considère à cet égard les grandeurs suivantes:
+
+- l'erreur quadratique moyenne de $\hatbbeta$  (`mse`)
+- l'erreur moyenne de prédiction calculée sur l'ensemble test, (`err`)
+- la précision du support estimé $\hat\supp$ (`acc`, $(TN+TP)/p$)
+- la sensibilité de $\hat\supp$ (`spe`, $TP/(FN+TP)$)
+- la spécificité de $\hat\supp$ (`sen`, $TN/(TN+FP)$)
+
+On a noté TP, FP, TN, FN respectivement pour *true positive*, *false positive*, *true negative* et *false negative*. 
+
+Écrire une fonction `getPerformance` qui calcule tous ces indices pour un estimateur $\hatbbeta$ donné.
+
+## Planning de simulations
+
+Créer un script de simulation pour chaque scénario de matrice de covariance des prédicteurs $\bSigma$, en commençant par exemple par le cas orthogonal.
+
+Chaque simulation doit renvoyer un `data.frame` de la forme suivante, afin de faciliter le tracé des résultats à l'aide du package **ggplot2**.
+
+```{r, echo=FALSE}
+l1 <- c(method="lasso", mse=round(rnorm(1),2), err=round(rnorm(1),2), acc=0.92, sen =.9, spe=.75, n.p=.5, r2=.75,simu=1)
+l2 <- c(method="ridge", mse=round(rnorm(1),2), err=round(rnorm(1),2), acc=0.92, sen =.9, spe=.75, n.p=.5, r2=.75,simu=1)
+l3 <- c(method="adalasso", mse=round(rnorm(1),2), err=round(rnorm(1),2), acc=0.92, sen =.9, spe=.75, n.p=.5, r2=.75,simu=1)
+res <- data.frame(rbind(l1,l2,l3))
+print(res)
+```
+
+Écrire une fonction `one.simu(i)` permettant d'effectuer la simulation numéro $i$  pour toutes les méthodes et pour toutes les valeurs des paramètres de simulation que vous aurez choisis (commencer doucement...). Cette fonction sera ensuite facilement parallélisable (par exemple avec le package **parallel** ou **pbmcapply**).
+
+### Interprétations des résultats 
+
+- Représentez les boxplots des indicateurs de performance en fonction de $n/p$ et de la valeur du $R^2$. On utilisera le package **ggplot2**.
+- Quels sont les effets de la grande dimension sur les performances des estimateurs (en estimation, en sélection) ?
+- Explorer les différents scénarios. Y a t-il des méthodes plus adaptées à certains scénarios ? Si oui, pourquoi ?
+
+<!-- ## Pour aller plus loin (et pour ceux qui sont en avance) -->
+
+<!-- *Cette partie a été rédigée par Franck Picard, merci à lui.* -->
+
+<!-- Nous nous interrogerons sur les conditions sur $n$, $p$ et $p_0$ pour que le lasso détecte bien les entrées nulles et non-nulles de $\beta^*$. Dans un article publié en 2009 (IEEE Transactions on Information Theory, 55:2183--2202, May 2009), M. Wainwright propose des conditions nécessaires et suffisantes pour que le lasso soit consistant en sélection pour le support signé. On notera $\mathbb{S}_{\pm}(\beta)$ le vector de signes de $\beta$ défini tel que: -->
+<!-- $$ -->
+<!-- \mathbb{S}_{\pm}(\beta_i) = \begin{cases} +1     &\mbox{si } \beta_i>0  \\  -->
+<!--                                               -1 & \mbox{si } \beta_i<0 \\ -->
+<!--                                               0  & \mbox{si } \beta_i=0  -->
+<!--                                               \end{cases}  -->
+<!-- $$ -->
+
+<!-- Dans son article M. Wainwright démontre l'existence de deux constantes dépendant de $\Sigma=\mathbb{V}(X)$, $0<\theta_\ell(\Sigma)\leq\theta_u(\Sigma)<\infty$ telles que pour une valeur  -->
+<!-- $$ -->
+<!-- \lambda_n = \sqrt{\frac{2 \sigma^2 \log( p_0) \log(p-p_0)}{n}} -->
+<!-- $$ -->
+<!-- du paramètre de régularisation du lasso, -->
+
+<!-- - si $n/(2p_0(\log(p-p_0)))>\theta_u(\Sigma)$ alors il est toujours possible de trouver une valeur du paramètre de régularisation $\lambda$ telle que le lasso a une solution unique $\widehat{\beta}$ telle que $\mathbb{P}\{\mathbb{S}_{\pm}(\beta^*) = \mathbb{S}_{\pm}(\widehat{\beta})\}$ tend vers 1. -->
+<!-- - si $n/(2p_0(\log(p-p_0)))<\theta_\ell(\Sigma)$, alors quelle que soit la valeur du paramètre de régularisation $\lambda>0$, aucune des solutions du lasso ne spécifie correctement le support signé de $\beta^*$, $\mathbb{P}\{\mathbb{S}_{\pm}(\beta^*) = \mathbb{S}_{\pm}(\widehat{\beta})\}$ tend vers 0. -->
+
+<!-- Dans son article, M. Wainwright propose d'appeler la quantité $n/(2p_0(\log(p-p_0)))$ "taille d'échantillon normalisée". C'est un indicateur qui combine les informations nécessaires à la consistance du lasso. Dans la suite, nous nous placerons dans le cas $\Sigma=I$, avec $\theta_\ell(I)=\theta_u(I)=1$. -->
+
+<!-- ### Questions -->
+
+<!-- - Pour les paramètres suivants, étudiez l'évolution de l'accuracy en terme de support en fonction de la taille d'échantillon normalisée, pour le lasso avec la valeur théorique de $\lambda$ proposée ci-dessus. $p \in \{128,256,512\}$, $n \in \{100,\hdots,1000\}$, $p_0=\lceil 0.4 \times p \rceil$, $\beta_0^*=0.5$, $\sigma=0.5$. -->
+<!-- - Comparer ces performances avec celles du lasso utilisant un $\lambda$ calibré par validation croisée, et celles du lasso adaptatif (également avec $\lambda$ calibré par validation croisée). Discutez les différences de comportement de l'accuracy. -->
+
+# Analyse de jeux de données omiques
+
+Cette partie des tutoriaux est à réaliser vous même, sur la base des méthodes que vous aurez utilisées au cours des travaux dirigés encadrées. Il s'agit d'étudier un jeu de données en génomique selon une variante des modèles précédemment utilisés. Les étudiants sont libre d'e proposer d'autre'analyser d'autre jeux de données dans un cadre de régression (linéaire, logistique, Poisson, etc), tant que la sélection de variable est en jeu.
+
+## Jeu de données "HIV"
+
+### Description
+
+Jeu de données de génotypes associés au niveau du virus du VIH dans le sang. 605 individus ont été génotypés pour 300 SNPs.
+
+### Format
+
+Lors du chargement des données, deux objets sont créés : 
+
+1. X - une matrice 605x300 donnant les génotypes de 605 individus pour 300 SNPs. 2. y - un vecteur de taille 605 donnant le niveau du virus du VIH dans le sang, pour chaque individu.
+
+```{r, echo=FALSE}
+rm(list = ls())
+```
+
+```{r}
+load("../data/HIVdata.rda")
+ls(); str(X); str(y)
+```
+
+### objectifs : 
+
+1. Sélectionner les SNPs qui sont associés au niveau du virus dans le sang.
+2. Sélectionner des ensembles de SNPs intégrant une forme de structure de corrélation dans les données.
+3. Évaluer les performances prédictives du modèles
+
+### référence 
+
+Dalmasso, C., Carpentier, W., Meyer, L., Rouzioux, C., Goujard, C., Chaix, M. L., ... & Theodorou, I. (2008). Distinct genetic loci control plasma HIV-RNA and cellular HIV-DNA levels in HIV-1 infection: the ANRS Genome Wide Association 01 study. *PloS one*, 3(12), e3907-e3907.
+
+## Jeu de données "colorectal"
+
+### Description
+
+Jeu de données de niveaux d'expression de gène associés à des tissus tumoraux ou sain dans le cancer du colon. 62 tissus ont été analysés pour 2000 gènes ou assimilés.
+
+### Format
+
+Lors du chargement des données, trois objets sont créés : 
+
+1. X - une matrice 62x2000 donnant les niveaux d'expression (log tranformés) relevé dans les tissus du colons de 62 patients.
+2. y - un vecteur de taille 62 indiquant le statut du tissus (-1: tumoral, 1: sain).
+3. genes.info - une liste de longueur 2000 donnant des informations sur les 2000 gènes considérés.
+
+```{r, echo=FALSE}
+rm(list=ls())
+```
+
+```{r}
+load("../data/colorectal.rda")
+ls()
+```
+
+### objectifs : 
+
+1. Sélectionner les gènes liés au cancer colo-rectal à l'aide d'un modèle gaussien
+2. Sélectionner les gènes liés au cancer colo-rectal à l'aide d'un modèle  logistique.
+3. Prédire le statut d'un tissu.
+
+### référence 
+
+U. Alon, N. Barkai, D. A. Notterman, K. Gish, S. Ybarra, D. Mack, and A. J. Levine, "Broad patterns of gene expression revealed by clustering of tumor and normal colon tissues probed by oligonucleotide arrays", *PNAS*, vol. 96, 1999.
+
+## Jeu de données 'Bardet'
+
+### description 
+
+Jeu de données simplifié d'expression de gènes associées au syndrome de Bardet-Biedl. Les échantillons ont été biopsiés à partir de tissus d'oeil de 120 rats. 
+
+### format
+
+Lors du chargement des données, la liste `bardet` est créé,  contenant deux objets:
+
+1. x - une matrice 120 x 100, donnant les expressions associées à 120 rats pour 100 sondes associés à 20 gènes. 5 sondes consécutives correspondent au même gène.
+2. y - un vecteur de taille 120 donnant le niveau d'expression du gène TRIM32.
+
+```{r, echo=FALSE}
+rm(list=ls())
+```
+
+```{r}
+load("../data/bardet.rda")
+str(bardet)
+```
+
+### objectifs
+
+1. Sélectionner les sondes les plus prédictives de l'expression de TRIM32.
+2. Opérer une sélection de sonde "par groupe" associée à chaque gène, sachant que 5 prédicteurs consécutifs sont des sondes associées au même gène.
+3. Évaluer les performances prédictives du modèle
+
+### référence
+
+T. Scheetz, K. Kim, R. Swiderski, A. Philp, T. Braun, K. Knudtson, A. Dorrance, G. DiBona, J. Huang, T. Casavant, V. Sheffield, E. Stone .Regulation of gene expression in the mammalian eye and its relevance to eye disease. *Proceedings of the National Academy of Sciences of the United States of America*, 2006.

@@ -1,0 +1,121 @@
+\subsection{Colinéarité entre prédicteurs et OLS}
+
+\begin{frame}
+  \frametitle{OLS et colinéarité: Gram-Schmidt (I)}
+  \framesubtitle{Régression par orthogonalisations successives}
+
+  \begin{columns}[c]
+    \begin{column}{.45\textwidth}
+      \hspace{1cm}\begin{block}{Algorithme de Gram-Schmidt}
+        \begin{scriptsize}
+          \begin{algorithm}[H]
+            \SetSideCommentLeft
+          \DontPrintSemicolon
+          \nlset{S0} \textcolor{mred}{Initialisation}\\
+          $\bz_0\leftarrow \bx_0 (=\b1_{p}); $
+
+          \BlankLine
+          \nlset{S2}   \textcolor{mred}{Régression   sur  une   base
+            orthonormale de $\mathrm{vect}(\bX)$}\\
+          \For{$j=1,\dots,p$}{
+            \For{$k=1,\dots,j-1$}{
+              \textcolor{mred}{Régression de $\bx_j$ sur $\bz_k$}\\
+              $\gamma_{kj}            \leftarrow            \frac{\bz_k^T
+                \bx_j}{\bz_k^\intercal \bz_k}$
+            }
+            \textcolor{mred}{Mis à jour des résidus $\bz_j$}\\
+            $\bz_j\leftarrow \bx_j - \sum_{\ell=0}^{j-1} \gamma_{\ell k} \bz_{\ell-1}$
+          }
+          \nlset{S3} \textcolor{mred}{Calcul de l'estimation $\hatbeta_p$} \\
+          $\hatbeta_p \leftarrow \frac{\bz_p^\intercal \by}{\bz_p^\intercal\bz_p}$.
+          \BlankLine
+        \end{algorithm}
+      \end{scriptsize}
+    \end{block}
+
+    \end{column}
+    \begin{column}{.45\textwidth}
+      \begin{figure}[htbp!]
+        \centering
+        \includegraphics[width=.8\textwidth]{figures/gram_schmidt}
+        \caption{Exemple avec deux prédicteurs}
+    \end{figure}
+    \end{column}
+  \end{columns}
+  \vspace{-.25cm}
+  L'étape 2 peut s'écrire (avec $\bD$ diagonale telle que $\bD_{jj}=
+  \bz_j^\intercal \bz_j$)
+  \begin{equation*}
+    \bX = \mathbf{Z}  \boldsymbol\Gamma = \mathbf{Z}\bD^{-1} \bD\boldsymbol\Gamma
+    = \mathbf{Q}\mathbf{R}
+    = \begin{pmatrix} \mathbf{Q}_1 & \mathbf{Q}_2\end{pmatrix}
+    \begin{pmatrix} \mathbf{R}_1 \\ \mathbf{0}\end{pmatrix}    
+    = \mathbf{Q}_1\mathbf{R}_1,
+  \end{equation*}
+  où $\mathbf{Q}_1$ est orthogonale et $\mathbf{R}_1$ triangulaire supérieure.
+\end{frame}
+
+\begin{frame}
+  \frametitle{OLS et colinéarité: Gram-Schmidt (II)}
+  \framesubtitle{Apportée par la factorisation QR}
+
+  \begin{block}{Estimateur   et   prédiction   en   fonction   de   la
+      factorisation QR}
+    \begin{equation*}
+      \hatbbetaols = \mathbf{R}_1^{-1} \mathbf{Q}_1^\intercal \by,
+\qquad      \hat{\by} = \mathbf{Q}_1 \mathbf{Q}_1^\intercal \by.
+    \end{equation*}
+
+  \end{block}
+
+  On peut permuter les colonnes de $\bX$ dans Gram-Schmidt, ainsi
+
+  \begin{itemize}
+    \item $\hatbeta_j$ est la contribution additionelle de $\bx_j$
+      sur $\by$ une fois que $\bx_j$ a été ajusté sur les autres prédicteurs,
+    \item La variance de $\hatbeta_p$ peut s'écrire
+      \begin{equation*}
+        \var(\hatbbeta_p) = \frac{\sigma^2}{\|\mathbf{z}_p\|^2_2}.
+      \end{equation*}
+    \end{itemize}
+
+    $\rightsquigarrow$ prédicteurs colinéaires $\Rightarrow$ \alert{\bf mauvaise estimation de $\bbeta$}.
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{OLS et colinéarité: limite de l'interprétabilité}
+
+  Supposons que $(X,Y)$ est un vecteur gaussien dans le
+  modèle linéaire 
+  
+  \[Y = X^\intercal \bbeta + \varepsilon, \quad \varepsilon\sim\mathcal{N}(0,\sigma^2).\]
+
+  Alors on peut montrer que
+  
+  \begin{overlayarea}{\textwidth}{\textheight}
+
+  \onslide<1->{
+    \begin{equation*}
+      Y      =    \sum_{j=1}^p  X_j     \cor(X_j,Y|X_k,      k\neq      j)
+      \frac{\sigma}{\sqrt{\var(X_j)}} + \varepsilon.
+    \end{equation*}
+    
+    $\rightsquigarrow$ $\beta_j$   est   \alert{proportionnel  à   la
+      corrélation partielle  entre $X_j$  et $Y$}\\
+    \textit{i.e.  l'effet de $X_j$ sur $Y$ une fois les autres effets ôtés.}  
+  }
+
+  \vfill
+  
+  \onslide<2->{
+    \begin{equation*}
+      \cov(\hatbetaols_i,\hatbetaols_j) \varpropto -\cor(X_i,X_j|X_k,k\neq i,j),
+    \end{equation*}
+    $\rightsquigarrow$ Les prédicteurs \alert{fortement liés}
+    impliquent des \alert{covariances négatives} entre les coefficients de
+    régression!
+  }
+
+  \end{overlayarea}
+\end{frame}

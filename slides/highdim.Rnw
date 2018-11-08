@@ -1,0 +1,103 @@
+\subsection{High-dimensional setup}
+
+\begin{frame}
+  \frametitle{Definition}
+
+  \begin{definition}  We  are in  a  high-dimensional  setup when  the
+    number of observations $n$  is smaller, and sometimes much smaller,
+    than the number of predictors to be estimated.
+  \end{definition}
+
+  \vfill
+
+  Thanks to new  technologies, it is now possible  to monitor a huge
+  number of feature for a single individual, e.g.
+
+  \vfill
+
+  \begin{example}
+    \begin{itemize}
+    \item Genomic data,
+    \item Image processing,
+    \item Networks,
+    \item What about your data set?
+    \end{itemize}
+  \end{example}
+
+\end{frame}
+
+\begin{frame}[containsverbatim,allowframebreaks]
+  \frametitle{Consequence}
+
+  \begin{enumerate}
+  \item High level of correlation between variables become structural
+  \item Inverting the empirical correlation matrix is very problematic
+    \begin{itemize}
+    \item The smaller $n$, The harder the inversion.
+    \item As soon as $n<p$, $\bX^T\bX$ is singular.
+    \end{itemize}
+  \end{enumerate}
+
+<<echo=FALSE>>=
+library(ggplot2)
+@
+
+<<>>=
+r.maxcor <- function(n,p) {
+  C <- cor(matrix(rnorm(n*p),n,p))
+  return(max(abs(C[upper.tri(C)])))
+}
+nsimu <- 100
+n <- 20
+p20  <- replicate(nsimu,r.maxcor(n,20))
+p100 <- replicate(nsimu,r.maxcor(n,100))
+p500 <- replicate(nsimu,r.maxcor(n,500))
+res <- data.frame(p = rep(c(20,100,500),each=nsimu),
+                  max.cor = c(p20,p100,p500))
+@
+
+
+<<fig=TRUE,echo=FALSE,width=8>>=
+g <- ggplot(res, aes(x=max.cor,fill=as.factor(p))) + geom_histogram(binwidth=.01, alpha=.5, position="identity")
+print(g)
+@
+\end{frame}
+
+\begin{frame}
+  \frametitle{Solutions}
+
+  \begin{block}{Sélection de variable}
+    Si le vrai modèle sous-jacent ne contient que peu de prédicteurs réellement liés à la variable réponse, on peut vouloir  \alert{sélectionner} ceux ayant un grand pouvoir prédictif. On vise ainsi
+    \begin{itemize}
+    \item de meilleures performances prédictives, 
+    \item une meilleure interprétabilité du modèle.
+    \end{itemize}
+  \end{block}
+
+  \vfill
+
+  \begin{block}{Régularisation}<2> 
+
+Si tous les prédicteurs ont des effet similaires sur la réponse, la sélection de prédicteurs interprétables est très difficile.
+
+Une solution est de  \alert{\bf régulariser} le problème en  \alert{\bf contraignant} les paramètres  $\bbeta$ à vivre dans un espace approprié, de sorte à 
+    \begin{itemize}
+    \item rendre $\bX^T\bX$ inversible, 
+    \item facilité l'interprétabilité.
+    \end{itemize}
+  \end{block}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Compromis Biais/Variance, toujours}
+
+  Dans les deux cas, une meilleur erreur de prédiction est attendue en ajustant le \alert{compromis biais/variance} dans le modèle.
+
+  \vfill
+
+  \begin{center}
+    \includegraphics{figures/tradeoff}
+  \end{center}
+
+\end{frame}

@@ -1,0 +1,155 @@
+\subsection{Illustration: cancer de la prostate}
+
+<<include=FALSE>>=
+library(knitr)
+opts_chunk$set(
+dev='pdf',fig.path='figures/subset'
+)
+@
+
+\begin{frame}[containsverbatim,allowframebreaks]
+  \frametitle{Recherche exhaustive}
+
+<<>>=
+library(leaps)
+@
+
+On calcule tous les modèles possibles 
+<<tidy=FALSE>>=
+out <- regsubsets(lpsa ~ . , data=prostate.train,
+                  nbest=100, really.big=TRUE)
+bss <- summary(out)
+@ 
+
+Extraction de la taille et des SCR. Ajout du modèle nul (juste l'intercept)
+<<tidy=FALSE>>=
+bss.size  <- as.numeric(rownames(bss$which))
+intercept <- lm(lpsa ~ 1, data=prostate)
+bss.best.rss  <- c(sum(resid(intercept)^2), tapply(bss$rss  , bss.size, min))
+@
+
+<<>>=
+plot(0:8, bss.best.rss, ylim=c(30, 135), type="b",
+     xlab="subset size", ylab="RSS", col="red2" )
+points(bss.size, bss$rss, pch=20, col="gray", cex=0.7)
+@
+\end{frame}
+
+\begin{frame}
+  \frametitle{Recherche exhaustive III}
+<<echo=FALSE>>=
+bss.best.cp  <- tapply(bss$cp   , bss.size, min)
+plot(1:8, bss.best.cp, type="b",
+     xlab="subset size", ylab="Cp", col="red2" )
+@
+\end{frame}
+
+\begin{frame}
+  \frametitle{Recherche exhaustive VI}
+
+<<echo=FALSE>>=
+bss.best.r2  <- tapply(bss$adjr2, bss.size, min)
+plot(1:8, bss.best.r2, type="b",
+     xlab="subset size", ylab="Adjusted R2", col="red2" )
+@
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Recherche exhaustive V}
+
+<<echo=FALSE>>=
+bss.best.bic <- tapply(bss$bic  , bss.size, min)
+plot(1:8, bss.best.bic, type="b",
+     xlab="subset size", ylab="BIC", col="red2" )
+@
+
+\end{frame}
+
+\begin{frame}[containsverbatim]
+  \frametitle{Forward-Stepwise dans \texttt{R} (I)}
+
+Création du modèle nul et du modèle plein
+<<>>=
+null  <- lm(lpsa ~ 1, data=prostate.train)
+full  <- lm(lpsa ~ ., data=prostate.train)
+@ 
+
+Création de l'ensemble des modèles à parcourir (\og scope\fg)
+<<>>=
+lower <- ~1
+upper <- ~lcavol+lweight+age+lbph+svi+lcp+gleason+pgg45
+scope <- list(lower=lower,upper=upper)
+@ 
+
+Stepwise avec AIC: forward, backward, both
+<<tidy=FALSE>>=
+fwd  <- step(null, scope, direction="forward" , trace=FALSE)
+bwd  <- step(full, scope, direction="backward", trace=FALSE)
+both <- step(null, scope, direction="both"   , trace=FALSE)
+@ 
+
+\vfill
+
+$\rightsquigarrow$ 3  modèles équivalents
+\end{frame}
+
+\begin{frame}[containsverbatim]
+  \frametitle{Forward regression}
+
+\begin{scriptsize}
+<<>>=
+fwd
+fwd$anova
+@ 
+\end{scriptsize}
+  
+\end{frame}
+
+\begin{frame}[containsverbatim]
+  \frametitle{Backward regression}
+
+\begin{scriptsize}
+<<>>=
+bwd
+bwd$anova
+@ 
+\end{scriptsize}
+
+\end{frame}
+\begin{frame}[containsverbatim]
+  \frametitle{Stepwise regression}
+
+\begin{scriptsize}
+<<>>=
+both
+both$anova
+@
+\end{scriptsize}
+  
+\end{frame}
+
+\begin{frame}[containsverbatim]
+  \frametitle{Évaluation sur données test}
+
+<<>>=
+print(err.ols)
+print(err.AIC.fwd  <- mean((y.test-predict(fwd ,prostate.test))^2))
+print(err.AIC.bwd  <- mean((y.test-predict(bwd ,prostate.test))^2))
+print(err.AIC <- mean((y.test-predict(both,prostate.test))^2))
+@ 
+\end{frame}
+
+
+\begin{frame}[containsverbatim]
+  \frametitle{Stepwise en  \texttt{R}: modification pour le BIC}
+  \framesubtitle{Modèle plus parcimonieux}
+  
+<<tidy=FALSE>>=
+BIC <- step(null, scope, k=log(n <- nrow(prostate)), trace=FALSE)
+BIC
+print(err.BIC  <- mean((y.test-predict(BIC ,prostate.test))^2))
+
+@ 
+\end{frame}
+

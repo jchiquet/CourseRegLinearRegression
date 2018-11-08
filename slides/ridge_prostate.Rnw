@@ -1,0 +1,75 @@
+\begin{frame}[containsverbatim]
+  \frametitle{Une implémentation \texttt{R} possible pour la régression Ridge}
+
+  \begin{tiny}
+<<echo=TRUE, eval=FALSE>>=
+ridge.regression <- function(x,y,lambda=0){
+  ## x is assumed to be centered/scaled by the user
+
+  n.lambda <- length(lambda)
+  variables <- colnames(x)
+  p <- length(variables)
+
+  SVD <- svd(x)
+  d  <- rep(SVD$d,n.lambda)
+  d2 <- rep(SVD$d^2,n.lambda)
+  lambdas <- rep(lambda,each=p)
+  V <- SVD$v
+  U <- SVD$u
+
+  Delta <- d/(d^2+lambdas)
+  beta  <- t(V %*% matrix((rep(t(U) %*% y, n.lambda) * Delta),nrow=p))
+  df    <- colSums(matrix(d2/rep(d2+lambdas,nrow=p)))
+  colnames(beta) <- variables
+
+  return(list(beta=beta,beta0=mean(y),df=df))
+}
+@
+\end{tiny}
+
+<<echo=FALSE>>=
+x.train <- as.matrix(prostate.train[, names(prostate.train) != "lpsa"])
+y.train <- prostate.train$lpsa
+x.test  <- as.matrix(prostate.test[, names(prostate.test) != "lpsa"])
+y.test  <- prostate.test$lpsa
+@
+
+\end{frame}
+
+\begin{frame}[containsverbatim]
+  \frametitle{Ridge et données du cancer de la prostate}
+
+  \vfill
+
+Calcul du chemin de solution
+<<>>=
+ridge.path <- ridge(x.train,y.train)
+@
+
+\vfill
+
+Calcul de l'erreur de prédiction sur l'ensemble test pour tout $\lambda$
+<<tidy=FALSE>>=
+err <- colMeans((y.test-predict(ridge.path,x.test))^2)
+@
+
+\vfill
+
+Ainsi, le $\lambda^\star$ qui minimise cette erreur est 
+<<>>=
+ridge.path@lambda2[which.min(err)]
+@
+
+L'erreur de prédiction est légèrement meilleure que celle de l'OLS
+<<>>=
+err.ridge <- err[which.min(err)]; err.ridge; err.ols
+@
+
+\end{frame}
+
+\begin{frame}[containsverbatim]
+  \frametitle{Ridge et données du cancer de la prostate}
+<<echo=FALSE>>=
+plot(ridge.path, labels=colnames(x.train))
+@
+\end{frame}

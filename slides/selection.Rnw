@@ -1,0 +1,240 @@
+\begin{frame}
+  \frametitle{Sélection de variable}
+
+  \begin{block}{Problématique}
+    
+  En augmentant le nombre de variables
+  \begin{itemize}
+  \item on intègre de plus en plus d'information dans le modèle ;
+  \item on augmente le nombre de paramètres à estimer et $\var (\hat{Y}_i)\nearrow$.
+  \end{itemize}  
+\end{block}
+
+  \vfill
+  
+  \begin{block}{Idée}
+    On recherche  un (petit)  ensemble $\mathcal{S}$ de  $k$ variables
+    parmi $p$ telles que
+  \begin{equation*}
+    Y \approx X_{\mathcal{S}}^T \hatbbeta_{\mathcal{S}}.
+  \end{equation*} 
+    \end{block}
+
+  \vfill
+
+  \begin{block}{Ingrédients}<2>
+    Pour trouver un compromis, on a besoin
+    \begin{enumerate}
+    \item d'un \alert{critère} pour évaluer la qualité du modèle;
+    \item d'un \alert{algorithme} pour déterminer les $k$ variables optimisant le critère.
+    \end{enumerate}
+  \end{block}
+
+\end{frame}
+
+\subsection{Critères de choix/comparaison de modèles}
+
+% \begin{frame}
+%   \frametitle{Erreur de prédiction}
+
+%   \begin{block}{Estimation par l'erreur d'entraînement}
+%     \alert{Attention} à ne pas estimer l'erreur par ce qu'on vient de minimiser:
+%     \begin{equation*}
+%       \hat{\err}_\mathcal{D}    =    \frac{1}{n_\mathrm{train}}
+%       \sum_{i\in\mathcal{D}}      (y_i-       x_i^T\hatbbeta)^2      <
+%       \err(X^T\hatbbeta).
+%     \end{equation*}
+%     $\rightsquigarrow$ On sous-estime grandement l'erreur de prédiction\dots
+%   \end{block}
+
+%   \vfill
+
+%   \begin{block}{Estimation \og Hold-out \fg}
+%     \begin{equation*}
+%       \hat{\err}_\mathcal{T}    =    \frac{1}{n_\mathrm{test}}
+%       \sum_{i\in\mathcal{T}}         (y_i-x_i^T\hatbbeta)^2        \approx
+%       \err(X\hatbbeta).
+%     \end{equation*}
+%     $\rightsquigarrow$ Possible que lorsqu'on dispose d'un grand jeu de données.
+%   \end{block}
+
+% \end{frame}
+
+% \begin{frame}
+%   \frametitle{Rappel}
+
+%     \begin{center}
+%       \includegraphics[width=.8\textwidth]{figures/tradeoff}
+%     \end{center}
+
+% \end{frame}
+
+\begin{frame}
+  \frametitle{Critères pénalisés}
+  \framesubtitle{Principe général}
+  
+  \begin{block}{Idée}
+    Plutôt que d'estimer l'erreur de  prédiction par l'erreur de test,
+    on estime de combien  l'erreur d'entraînement sous-estime la vraie
+    erreur.
+  \end{block}
+
+  \vfill
+  
+  \begin{block}{Forme générique des critères}
+    Sans ajuster d'autres modèles, on calcule
+    \begin{equation*}
+      \hat{\mathrm{err}} = \mathrm{err}_{\mathcal{D}} + \mathrm{"optimisme"}.
+    \end{equation*}
+  \end{block}
+
+  \vfill
+  
+  \begin{block}{Remarques}<2>
+    \begin{itemize}
+    \item beaucoup moins coûteux que la validation croisée
+    \item revient à \og pénaliser \fg les modèles trop complexes.
+    \end{itemize}
+  \end{block}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Critères pénalisés}
+  \framesubtitle{Les plus populaires en régression}
+
+    Soit $k$ la dimension du modèle (le nombre de prédicteurs utilisés).
+    
+    \vfill
+
+    \begin{block}{Critères  pour  le  modèle  de  régression  linéaire
+        \only<1>{$\sigma$ connue}\only<2>{$\sigma$ inconnue}}
+      On choisit le modèle de taille $k$ minimisant un des critères suivants.
+      \begin{itemize}
+      \item \alert{\bf $C_p$ de Mallows} \only<2>{$\sigma$ estimée par
+          l'estimateur sans biais $\hat\sigma$}
+        \[
+        \only<1>{C_p= \frac{\mathrm{err}_{\mathcal{D}}}{\sigma^2} - n + 2 \frac{k}{n} }
+        \only<2>{C_p= \frac{\mathrm{err}_{\mathcal{D}}}{\hat{\sigma}^2} - n + 2 \frac{k}{n} }        
+        \]
+    \item      \alert{\bf      Aka\"ike     Information      Criteria}
+      \only<1>{équivalent au $C_p$ quand $\sigma$ est connue} \only<2>{$\sigma^2$ estimée par $\err_{\mathcal{D}}/n$}
+      \[ 
+      \mathrm{AIC} = - 2 \mathrm{loglik} + 2 k
+      \only<1>{ = \frac{n}{\sigma^2} \mathrm{err}_{\mathcal{D}} + 2 k .}
+      \only<2>{ = n \log(\mathrm{err}_{\mathcal{D}}) + 2 k .}
+      \]
+      
+    \item \alert{\bf Bayesian Information Criterion} \only<2>{$\sigma^2$ estimée par $\err_{\mathcal{D}}/n$}
+      \[ 
+      \mathrm{BIC} = - 2 \mathrm{loglik} + k \log(n)
+      \only<1>{ = \frac{n}{\sigma^2} \mathrm{err}_{\mathcal{D}} + k \log(n) .}
+      \only<2>{ = n \log(\mathrm{err}_{\mathcal{D}}) + k \log(n) .}
+      \]
+    \end{itemize}
+    \end{block}
+  
+\end{frame}
+
+\begin{frame}{$C_p$/AIC: preuve}
+
+
+  L'idéal  serait de  minimiser  l'espérance de  la
+  distance  entre le  vrai  modèle $\bX  \bbeta =  \bmu$  et celui  de
+  l'OLS. La distance se décompose comme suit:
+\begin{align*}
+\| \bmu - \bX \hatbbetaols \|^2 = & \| \by - \varepsilon - \bP_\bX \by \|^2 \\
+ =& \| \by -  \hat\by \|^2 + \| \varepsilon \|^2  -2 \varepsilon^\intercal (\by -\bP_\bX\by) \\
+  = & n \err_{\mathcal{D}}  + \| \varepsilon  \|^2 -2 \varepsilon^\intercal  (\bI -\bP_\bX) (\bmu + \varepsilon)\\
+  = & n\err_{\mathcal{D}} - \| \varepsilon \|^2 +2 \varepsilon^\intercal \bP_\bX \varepsilon -2
+\varepsilon^\intercal (\bI -\bP_\bX) \bmu
+\end{align*}
+
+En espérance, on a
+\begin{itemize}
+\item $\E[\| \varepsilon \|^2] = n \sigma^2$
+\item $\E[\varepsilon^\intercal (\bI-\bP_\bX)\bmu]=0$
+\item $\E[2 \varepsilon^\intercal \bP_\bX \varepsilon]= 2 \E[ \trace{\varepsilon^\intercal \bP_\bX
+  \varepsilon}]=2 \trace{\bP_\bX}\sigma^2$
+\end{itemize}
+
+Si $k$ est la dimension de l'espace où l'on projette, on trouve
+$$
+\E \| \bmu - \bX \hatbbetaols \|^2 = n \err_{\mathcal{D}} - n \sigma^2 +2 k \sigma^2
+$$
+Il suffit alors de diviser par  $n \sigma^2$.
+\end{frame}
+
+\subsection{Algorithmes de sélection de sous-ensembles}
+
+\begin{frame}
+  \frametitle{Recherche exhaustive (best-subset)}
+
+  \begin{block}{Algorithme}
+    Pour $k=0,\dots,p$,  trouver le sous-ensemble de  $k$ variables qui
+    donne le plus petit $SCR$ parmi les $2^k$ modèles.
+  \end{block}
+  
+  \vfill
+  
+  \begin{block}{Propriétés}
+    \begin{itemize}
+    \item Peut être généralisé à d'autres critères ($R^2$, AIC, BIC\dots)
+    \item Existence d'un algorithme efficace (\og Leaps and Bound \fg)
+    \item impossible dès que $p>30$.
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Sélection avant \only<1>{(Forward regression)} \only<2>{Pas à pas (Forward-stepwise)}}
+
+  \begin{block}{Algorithme}
+    \begin{itemize}
+    \item[1.] Commencer avec $\mathcal{S} = \emptyset$
+    \item[2.]<1> À l'étape $k$ trouver la variable qui ajoutée à $\mathcal{S}$
+      donne le meilleur modèle
+    \item[2'.]<2> À l'étape $k$ trouver le meilleur modèle lorsqu'une
+      variable est ajoutée ou enlevée.
+    \item[3] etc. jusqu'au modèle à $p$ variables
+    \end{itemize}
+  \end{block}
+  
+  \vfill
+  
+  \begin{block}{Propriétés}
+    \begin{itemize}
+    \item le meilleur modèle est compris en terme de SCR ou $R^2$,
+      AIC, BIC\dots
+    \item approprié lorsque $p$ est grand
+    \item biais important, mais variance/complexité contrôlée.
+    \item algorithme dit \og glouton \fg\ (greedy)
+    \end{itemize}
+  \end{block}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Sélection arrière}
+
+  \begin{block}{Algorithm}
+    \begin{enumerate}
+    \item[1] Commencer avec le modèle plein $\mathcal{S} = \set{1,\dots,p}$
+    \item[2]  À  l'étape   $k$,  enlever  la  variable   ayant  le  moins
+      d'influence sur l'ajustement.
+    \item[3] etc. jusqu'au modèle nul.
+    \end{enumerate}
+  \end{block}
+  
+  \vfill
+  
+  \begin{block}{Propriétés}
+    \begin{itemize}
+    \item le meilleur modèle est compris en terme de SCR ou $R^2$,
+      AIC, BIC\dots
+    \item ne fonctionne pas si $n <p$
+    \item algorithme dit \og glouton \fg\ (greedy)
+    \end{itemize}
+  \end{block}
+
+\end{frame}

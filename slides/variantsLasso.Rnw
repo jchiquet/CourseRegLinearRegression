@@ -1,0 +1,120 @@
+\begin{frame}
+  \frametitle{Variants: the Lasso zoo I}
+  \begin{small}
+  \begin{block}{The elastic-net (Zou and Hastie, 2005)}
+    Tends to activate correlated variables simultaneously:
+    \begin{equation*}
+      \hat{\bbeta}^{\text{e-net}} = \arg \min_{\bbeta\in \R^p} 
+      \left\{\frac{1}{2}\text{RSS}(\bbeta)   +   \lambda   \left(   \alpha
+          \|\bbeta \|_1 + (1-\alpha) \|\bbeta\|_2^2 \right) \right\},
+    \end{equation*}   
+  \end{block}
+
+  \begin{block}{Adaptive/Weighted-Lasso}
+    Weights each entry according to a previous estimate e.g. the ols:
+    \begin{equation*}
+      \hat{\bbeta}^{\text{lasso}} = \arg \min_{\bbeta\in \R^p} 
+      \left\{\frac{1}{2}\text{RSS}(\bbeta)  +  \lambda \|\mathbf{w}  \circ
+        \bbeta\|_1   \right\},  \quad   \text{with   }  \mathbf{w}   =
+      \max\left(1,1/\bbeta^{\mathrm{ols}}\right).
+    \end{equation*}
+  \end{block}
+
+  \begin{block}{Group-Lasso (Yuan and Lin, 2006)}
+  \vspace{-.5cm}
+    \begin{equation*}
+      \hatbbetagroup = \argmin_{\bbeta\in\mathbb{R}^p} \left\{
+        \frac{1}{2}\left\| \mathbf{y} - \mathbf{X}\bbeta \right\|^2 + 
+        \lambda \sum_{k=1}^K w_k \left\|\bbeta_{\mathcal{G}_k} \right\| \right\},
+    \end{equation*}
+  \end{block}
+  \end{small}
+\end{frame}
+
+<<echo=FALSE>>=
+options(SweaveHooks=list(fig=function() par(cex.main=.6,cex=.6,cex.axis=.6,cex.lab=.6)))
+@
+
+<<echo=FALSE>>=
+library(quadrupen)
+load("prostate.rda")
+x <- as.matrix(prostate[, 1:8])
+y <- c(prostate[, 9])
+set <- prostate$train
+n      <- sum(set)
+n.test <- sum(!set)
+x.test <- x[!set,]
+y.test <- y[!set]
+x <- x[set,]
+y <- y[set]
+@ 
+
+\begin{frame}[containsverbatim,allowframebreaks]
+\frametitle{Example: prostate cancer}
+\framesubtitle{Elastic-net, Adaptive Lasso, Group-Lasso}
+
+<<include=FALSE>>=
+suppressPackageStartupMessages(library(scoop))
+@
+
+\begin{small}
+<<>>=
+out.elas <- elastic.net(x,y,lambda2=1)
+@ 
+
+<<>>=
+beta.ols <- lm(y~x)$coefficients[-1]
+p.fact <- pmax(1,1/abs(beta.ols))
+out.alasso <- elastic.net(x,y,penscale=p.fact)
+@
+
+According to the \textsc{Lasso} solution path, we fell like grouping 2
+(\texttt{lweight})  and 5 (\texttt{svi}),as  well as  3 (\texttt{age})
+and 6 (\texttt{scp}); the same for 4 (\texttt{lbph}) and 8 (\texttt{pgg45}).
+<<message=FALSE>>=
+group <- c(1,2,3,4,2,3,5,4)
+out.grp <- group.lasso(x, y, group)
+sgrp <- selection(out.grp)
+@ 
+\end{small}
+
+\end{frame}
+
+\begin{frame}[containsverbatim]
+\frametitle{Example: prostate cancer}
+\framesubtitle{Elastic-net: solution path (penalty)}
+
+<<echo=FALSE,fig=TRUE,width=7>>=
+plot(out.elas)
+@ 
+\end{frame}
+
+\begin{frame}[containsverbatim]
+\frametitle{Example: prostate cancer}
+\framesubtitle{Adaptive-Lasso: solution path (penalty)}
+
+<<echo=FALSE,fig=TRUE,width=7>>=
+plot(out.alasso, main="adaptive Lasso")
+@ 
+\end{frame}
+
+\begin{frame}[containsverbatim]
+\frametitle{Example: prostate cancer}
+\framesubtitle{Group-Lasso: solution path and AIC}
+
+<<echo=FALSE,fig=TRUE,width=7>>=
+plot(out.grp, crit=sgrp$AIC)
+@ 
+
+\end{frame}
+
+\begin{frame}[containsverbatim]
+\frametitle{Example: prostate cancer}
+\framesubtitle{Group-Lasso: group-norm path and AIC}
+
+<<echo=FALSE,fig=TRUE,width=7>>=
+plot(out.grp, yvar="group", crit=sgrp$AIC)
+detach(package:scoop, unload=TRUE)
+@ 
+
+\end{frame}

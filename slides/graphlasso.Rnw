@@ -1,0 +1,199 @@
+\subsection{Modèles graphiques gaussiens parcimonieux}
+
+\begin{frame}
+  \frametitle{Gaussian Graphical Model: canonical settings}
+
+  \begin{block}{Assays in comparable Gaussian conditions}
+    Profiles of  a set  $\mathcal{P} =  \{1,\dots,p\}$ of  variable is
+    described by $X\in\mathbb{R}^p$ such as
+    \begin{enumerate}
+    \item  $X\sim\mathcal{N}(\boldsymbol\mu,\boldsymbol\Sigma)$,  with
+      $\boldsymbol\Theta = \bSigma^{-1}$ the precision matrix.
+    \item  a  sample $(X^1,  \dots,  X^n)$  of  assays stacked  in  an
+      $n\times p$ data matrix $\mathbf{X}$.
+    \end{enumerate}
+  \end{block}
+
+  \begin{overlayarea}{\textwidth}{\textheight}
+    \only<2>{\begin{colormixin}{100!white}}
+      \only<1>{\begin{colormixin}{40!white}}
+        
+        \begin{block}{Conditional independence structure}
+          \vspace{-.5cm}
+          \begin{equation*}
+            (i,j)  \notin  \mathcal{E}  \Leftrightarrow  X_i  \indep  X_j  |
+            X_{\backslash \{i,j\}} \Leftrightarrow \Theta_{ij} = 0.
+          \end{equation*}
+        \end{block}
+        
+        \vspace{-.5cm}
+        \begin{block}{Graphical interpretation}
+          \vspace{-.5cm}
+          \begin{center}
+            \begin{tabular}{c@{\hspace{2cm}}c}
+              \begin{tabular}{c}
+                \small $\mathcal{G}=(\mathcal{P},\mathcal{E})$ \\
+                \includegraphics[width=.3\textwidth]{graph}
+              \end{tabular}
+              &
+              \begin{tabular}{c}
+                \small $\bTheta$\\\includegraphics[width=.2\textwidth]{Markovadjacency}
+              \end{tabular}
+            \end{tabular}
+          \end{center}
+        \end{block}
+        \vspace{-1cm}
+        $\rightsquigarrow$ \alert{``Covariance'' selection}
+  
+      \end{colormixin}
+
+      \only<1>{
+        \vspace{-4cm}      
+        \begin{beamerboxesrounded}[upper=sur:head,lower=sur:bloc,shadow=true]{The data}
+          Stacking    $(X^1,\dots,    X^n)$,    we   met    the    usual
+          individual/variable table $\mathbf{X}$
+
+        \begin{tikzpicture}
+          \node[opacity=.75] at (-3,1.5) {\pgfuseimage{microarray}};
+          \node[opacity=.9] at (-2.75,1.25) {\pgfuseimage{microarray}};
+          \node[opacity=.95] at (-2.5,1) {\pgfuseimage{microarray}};
+          \node at (-2.25,0.75) {\pgfuseimage{microarray}};
+          \node[fill=red, text=white,single arrow] 
+          (inference) at (0,1) {\sf \scriptsize stacked in}; 
+          
+          \node at (4.5,1) {%
+            $\mathbf{X} = \begin{pmatrix} 
+              x_1^1 & x_1^2 & x_1^3 & \dots & x_1^p \\
+              \vdots \\
+              x_n^1 & x_n^2 & x_1^2 & \dots & x_n^p \\
+            \end{pmatrix}$};
+        \end{tikzpicture}
+      \end{beamerboxesrounded}
+    }
+  \end{overlayarea}      
+\end{frame}
+
+\begin{frame}
+  \frametitle{Gold standard penalized approaches}
+  \framesubtitle{Use $\ell_1$ for both regularizing and promoting \textit{sparsity}}
+
+  \begin{overlayarea}{\textwidth}{\textheight}
+    \only<1-3>{\begin{colormixin}{100!white}}
+      \only<4->{\begin{colormixin}{40!white}}
+
+  \begin{block}{Penalized likelihood (Banerjee \textit{et al.}, Yuan and Lin, 2008)}
+    \vspace{-1em}
+    \begin{equation*}
+      \hat{\bTheta}_\lambda=\argmax_{\bTheta \in \mathbb{S}_+}
+      \ell(\bTheta;\mathbf{X})-\lambda
+      \|\bTheta\|_{1}
+    \end{equation*}
+  \end{block}
+  \vspace*{-1em}
+
+  \only<1>{
+    \begin{itemize}
+    \item[\textcolor{green}{$+$}] symmetric, positive-definite
+    \item[\textcolor{red}{$-$}] solved by the ``Graphical-Lasso''
+      ($\mathcal{O}(p^3)$, \textit{Friedman et al, 2007}).
+    \end{itemize}
+  }
+
+  \vfill
+
+  \begin{block}{Neighborhood Selection (Meinshausen \& B\"ulhman, 2006)}<2->
+    \vspace*{-1em}
+    \begin{equation*}
+      \widehat{\boldsymbol\beta}^{(i)} = \argmin_{\boldsymbol\beta \in \mathbb{R}^{p-1} }
+      \frac{1}{n} \left\| \mathbf{X}_i - \mathbf{X}_{\backslash i} \,
+        {\boldsymbol\beta} \right\|_2^2 + \lambda \left\| {\boldsymbol\beta} \right\|_{1}
+    \end{equation*}
+    \vspace*{-0.75\baselineskip}
+  \end{block}
+  
+  \only<2>{
+    \begin{itemize}
+    \item[\textcolor{red}{$-$}] not symmetric, not positive-definite
+    \item[\textcolor{green}{$+$}] $p$
+      Lasso solved with Lars-like algorithms ($\mathcal{O}(npd)$ for $d$ neighbors).
+    \end{itemize}
+  }
+
+  \begin{block}{CLIME -- Pseudo-likelihood (Cai et al., 2011; Yuan, 2010)}<3->
+    \vspace*{-1em}
+    \begin{equation*}
+      \widehat{\boldsymbol\Theta} = \argmin_{\boldsymbol\Theta}
+      \left\|   {\boldsymbol\Theta} \right\|_1 \text{ subjected to }
+      \left\|    n^{-1}\mathbf{X}^t     \mathbf{X}    \boldsymbol\Theta    -
+        \mathbf{I} \right\|_\infty\leq \lambda
+    \end{equation*}
+    \vspace*{-0.75\baselineskip}
+  \end{block}
+
+  \only<3>{
+    \begin{itemize}
+    \item[\textcolor{red}{$-$}] not positive-definite
+    \item[\textcolor{green}{$+$}]    $p$   linear    programs   easily
+      distributed ($\mathcal{O}(p^2d)$ for $d$ neighbors).
+    \end{itemize}
+  }
+  
+  \end{colormixin}
+
+  \only<4>{
+    \vspace{-4cm}      
+    \begin{beamerboxesrounded}[upper=sur:head,lower=sur:bloc,shadow=true]{Variants
+        and recent improvements}
+      
+      '13 NIPS submissions
+      \begin{itemize}
+      \item  Use  square-root  Lasso  in place  of  Lasso  for  tuning
+        insensitive property package
+      \item Solve CLIME for $p=10^6$ (on 400 cores).
+      \end{itemize}
+        
+      See   \texttt{R}   package  \texttt{huge},   \texttt{fastclime},
+      \texttt{flare}, \texttt{QUIC}.
+    \end{beamerboxesrounded}
+  }
+
+\end{overlayarea}      
+
+\end{frame}
+
+\begin{frame}[containsverbatim,allowframebreaks]
+\frametitle{Estimating the covariance structure of the plasmodium data}
+
+<<>>=
+library(Matrix)
+load("plasmodium_expression.Rdata")
+dim(Y)
+head(Y)[, 1:5]
+image(Matrix(cor(Y)))
+@
+\end{frame}
+
+
+\begin{frame}[containsverbatim,allowframebreaks]
+\frametitle{Estimating the covariance structure}
+\framesubtitle{Sparse Estimation}
+
+<<>>=
+library(huge)
+huge.out <- huge(as.matrix(Y), method="glasso", cov.output=TRUE)
+sel.out  <- huge.select(huge.out)
+image(sel.out$opt.cov)
+@
+\end{frame}
+
+\begin{frame}[containsverbatim,allowframebreaks]
+\frametitle{Estimating the covariance structure}
+\framesubtitle{Sparse Estimation of the inverse covariance}
+
+<<>>=
+sum(abs(sel.out$opt.icov) != 0)
+ncol(sel.out$opt.icov) ** 2
+image(sel.out$opt.icov)
+@
+
+\end{frame}
