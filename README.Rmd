@@ -23,7 +23,7 @@ L'évaluation se fera sous la forme d'un rapport associé au séances machines e
 ## Documents
 
 - [Les slides du cours](https://github.com/jchiquet/CourseRegLinearRegression/raw/master/slides/main.pdf)
-- [l'énoncé des travaux dirigés](https://github.com/jchiquet/CourseRegLinearRegression/raw/master/td/td_ensai.pdf)
+- [l'énoncé des travaux dirigés](https://github.com/jchiquet/CourseRegLinearRegression/raw/master/td/td_ensai.pdf), [un peu d'aide](https://github.com/jchiquet/CourseRegLinearRegression/raw/master/td/hints.R)
 
 ## Logiciel
 
